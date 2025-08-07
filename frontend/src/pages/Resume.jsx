@@ -8,13 +8,16 @@ import ResumeEditorTab from '../components/ResumeEditorTab';
 import PersonalizeContentTab from '../components/PersonalizeContentTab';
 import { useProposal } from '../context/ProposalContext';
 import { useResume } from '../context/ResumeContext';
+import { api } from '../lib/api';
+import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import '../App.css';
 
 function Resume() {
   const navigate = useNavigate();
-  const { apiCall, user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { getClients, getContacts, getExperiences, getProposals } = useData();
   const { selectedProposal, setSelectedProposal } = useProposal();
   const { selectedResume, setSelectedResume } = useResume();
 
@@ -59,30 +62,17 @@ function Resume() {
 
     const fetchData = async () => {
       try {
-        const [clientsResponse, proposalsResponse, experiencesResponse, contactsResponse] = await Promise.all([
-          apiCall('/api/clients'),
-          apiCall('/api/proposals'),
-          apiCall('/api/experiences'),
-          apiCall('/api/contacts'),
+        const [clientsRes, proposalsRes, experiencesRes, contactsRes] = await Promise.all([
+          getClients(),
+          getProposals(15000),
+          getExperiences(),
+          getContacts(),
         ]);
 
-        if (!clientsResponse.ok) {
-          throw new Error(`HTTP error! status: ${clientsResponse.status} for clients`);
-        }
-        if (!proposalsResponse.ok) {
-          throw new Error(`HTTP error! status: ${proposalsResponse.status} for proposals`);
-        }
-        if (!experiencesResponse.ok) {
-          throw new Error(`HTTP error! status: ${experiencesResponse.status} for experiences`);
-        }
-        if (!contactsResponse.ok) {
-          throw new Error(`HTTP error! status: ${contactsResponse.status} for contacts`);
-        }
-
-        const clientsData = await clientsResponse.json();
-        const proposalsData = await proposalsResponse.json();
-        const experiencesData = await experiencesResponse.json();
-        const contactsData = await contactsResponse.json();
+        const clientsData = clientsRes || [];
+        const proposalsData = proposalsRes || [];
+        const experiencesData = experiencesRes || [];
+        const contactsData = contactsRes || [];
 
         setClients(clientsData);
         setContacts(contactsData);
@@ -106,7 +96,7 @@ function Resume() {
       // Fetch resumes for the selected proposal
       const fetchResumes = async () => {
         try {
-          const response = await apiCall(`/api/proposals/${selectedProposal.id}/resumes`);
+          const response = await api.request(`/api/proposals/${selectedProposal.id}/resumes`);
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status} for resumes`);
           }
@@ -183,7 +173,7 @@ function Resume() {
         due_date: proposalFormData.due_date || null
       };
 
-      const response = await apiCall('/api/proposals', {
+      const response = await api.request('/api/proposals', {
         method: 'POST',
         body: JSON.stringify(submitData)
       });
@@ -218,7 +208,7 @@ function Resume() {
         due_date: proposalFormData.due_date || null
       };
 
-      const response = await apiCall(`/api/proposals/${selectedProposal.id}`, {
+      const response = await api.request(`/api/proposals/${selectedProposal.id}`, {
         method: 'PUT',
         body: JSON.stringify(submitData)
       });
@@ -250,7 +240,7 @@ function Resume() {
     setLoading(true);
 
     try {
-      const response = await apiCall('/api/resumes', {
+      const response = await api.request('/api/resumes', {
         method: 'POST',
         body: JSON.stringify({
           project_proposal_id: selectedProposal.id,
@@ -289,7 +279,7 @@ function Resume() {
 
     setLoading(true);
     try {
-      const response = await apiCall(`/api/resumes/${resumeId}`, {
+      const response = await api.request(`/api/resumes/${resumeId}`, {
         method: 'DELETE',
       });
 
@@ -327,7 +317,7 @@ function Resume() {
 
     try {
       // Immediately save to database
-      const response = await apiCall(`/api/resumes/${selectedResume.id}`, {
+      const response = await api.request(`/api/resumes/${selectedResume.id}`, {
         method: 'PUT',
         body: JSON.stringify({
           experience_ids: newSelectedExperiences,
@@ -363,7 +353,7 @@ function Resume() {
 
     try {
       // Just regenerate the resume content with existing experiences (no experience update)
-      const generateResponse = await apiCall('/api/generate-final-resume', {
+      const generateResponse = await api.request('/api/generate-final-resume', {
         method: 'POST',
         body: JSON.stringify({
           resume_id: selectedResume.id,
@@ -410,7 +400,7 @@ function Resume() {
     setLoading(true);
 
     try {
-      const response = await apiCall(`/api/resumes/${selectedResume.id}`, {
+      const response = await api.request(`/api/resumes/${selectedResume.id}`, {
         method: 'PUT',
         body: JSON.stringify({
           generated_content: editedResumeContent,
@@ -435,7 +425,7 @@ function Resume() {
 
   const handleExperienceSave = () => {
     if (selectedResume && selectedResume.id) {
-      apiCall(`/api/resumes/${selectedResume.id}`)
+      api.request(`/api/resumes/${selectedResume.id}`)
         .then(res => res.json())
         .then(data => {
           setEditedResumeContent(data.generated_content || '');
@@ -445,14 +435,16 @@ function Resume() {
   };
 
   const getDisplayName = (resume, index) => {
-    return resume.alias || `Resume #${index + 1}`;
+    if (!resume) return 'Resume';
+    const safeIndex = typeof index === 'number' && index >= 0 ? index : 0;
+    return resume.alias || `Resume #${safeIndex + 1}`;
   };
 
   // Load experiences for the selected resume when it changes
   useEffect(() => {
     if (authLoading || !user) return;
     if (selectedResume && selectedResume.id) {
-      apiCall(`/api/resumes/${selectedResume.id}`)
+      api.request(`/api/resumes/${selectedResume.id}`)
         .then(res => {
           if (!res.ok) {
             throw new Error(`HTTP error! status: ${res.status}`);
@@ -813,18 +805,20 @@ function Resume() {
       </div>
 
       {/* Resume context navigation */}
-      <div className="resume-context-nav">
-        <button 
-          className="button-secondary button-with-icon" 
-          onClick={() => setSelectedResume(null)}
-          title="Back to Resume List"
-        >
-          <ChevronLeftIcon style={{ fontSize: '20px' }} />
-          Back
-        </button>
-        <span className="breadcrumb-separator">›</span>
-        <h2>{getDisplayName(selectedResume, resumesForProposal.findIndex(r => r.id === selectedResume?.id))}</h2>
-      </div>
+      {selectedResume && (
+        <div className="resume-context-nav">
+          <button 
+            className="button-secondary button-with-icon" 
+            onClick={() => setSelectedResume(null)}
+            title="Back to Resume List"
+          >
+            <ChevronLeftIcon style={{ fontSize: '20px' }} />
+            Back
+          </button>
+          <span className="breadcrumb-separator">›</span>
+          <h2>{getDisplayName(selectedResume, resumesForProposal.findIndex(r => r.id === selectedResume?.id))}</h2>
+        </div>
+      )}
 
       {selectedProposal && selectedResume && (
         <div className="resume-builder-content">
@@ -861,6 +855,32 @@ function Resume() {
         <div className="loading-indicator">
           Loading...
         </div>
+      )}
+
+      {/* Global Select Proposal Modal so it works even without a selected proposal */}
+      {showSelectProposalModal && (
+        <Modal onClose={() => setShowSelectProposalModal(false)}>
+          <h3>Select an Existing Proposal</h3>
+          <div className="form-group">
+            <label>
+              Existing Proposals:
+              <select
+                value={selectedProposal ? selectedProposal.id : ''}
+                onChange={handleSelectExistingProposal}
+              >
+                <option value="">-- Select a Proposal --</option>
+                {allProposals.map((proposal) => (
+                  <option key={proposal.id} value={proposal.id}>
+                    {proposal.name} (Client: {clients.find(c => c.id === proposal.client_id)?.client_name || 'N/A'})
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="form-actions">
+            <button type="button" className="button-secondary" onClick={() => setShowSelectProposalModal(false)}>Cancel</button>
+          </div>
+        </Modal>
       )}
     </div>
   );

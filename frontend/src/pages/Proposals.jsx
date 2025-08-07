@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../components/Modal';
-import { useAuth } from '../context/AuthContext';
+import { api } from '../lib/api';
+import { useData } from '../context/DataContext';
 import './Proposals.css';
 
 function Proposals() {
-  const { apiCall } = useAuth();
+  const { getClients, getContacts, getProposals } = useData();
   const [proposals, setProposals] = useState([]);
   const [filteredProposals, setFilteredProposals] = useState([]);
   const [clients, setClients] = useState([]);
@@ -48,9 +49,18 @@ function Proposals() {
 
   // Load data
   useEffect(() => {
-    loadProposals();
-    loadClients();
-    loadContacts();
+    // Use cached loads to avoid duplicate network hits on tab switches
+    (async () => {
+      const [p, c, ct] = await Promise.all([
+        getProposals(),
+        getClients(),
+        getContacts(),
+      ]);
+      if (Array.isArray(p)) setProposals(p);
+      if (Array.isArray(c)) setClients(c);
+      if (Array.isArray(ct)) setContacts(ct);
+      setLoading(false);
+    })();
   }, []);
 
   // Apply filters
@@ -60,10 +70,9 @@ function Proposals() {
 
   const loadProposals = async () => {
     try {
-      const response = await apiCall('/api/proposals');
+      const { response, data } = await api.json('/api/proposals', { cacheTTL: 30000 });
       if (response.ok) {
-        const data = await response.json();
-        setProposals(data);
+        setProposals(data || []);
       } else {
         throw new Error('Failed to load proposals');
       }
@@ -76,10 +85,9 @@ function Proposals() {
 
   const loadClients = async () => {
     try {
-      const response = await apiCall('/api/clients');
+      const { response, data } = await api.json('/api/clients', { cacheTTL: 30000 });
       if (response.ok) {
-        const data = await response.json();
-        setClients(data);
+        setClients(data || []);
       }
     } catch (err) {
       console.error('Failed to load clients:', err);
@@ -88,10 +96,9 @@ function Proposals() {
 
   const loadContacts = async () => {
     try {
-      const response = await apiCall('/api/contacts');
+      const { response, data } = await api.json('/api/contacts', { cacheTTL: 30000 });
       if (response.ok) {
-        const data = await response.json();
-        setContacts(data);
+        setContacts(data || []);
       }
     } catch (err) {
       console.error('Failed to load contacts:', err);
@@ -191,7 +198,7 @@ function Proposals() {
         due_date: formData.due_date || null
       };
       
-      const response = await apiCall(url, {
+      const response = await api.request(url, {
         method,
         body: JSON.stringify(submitData)
       });
@@ -216,7 +223,7 @@ function Proposals() {
     if (!window.confirm('Are you sure you want to delete this proposal?')) return;
 
     try {
-      const response = await apiCall(`/api/proposals/${id}`, {
+      const response = await api.request(`/api/proposals/${id}`, {
         method: 'DELETE'
       });
 

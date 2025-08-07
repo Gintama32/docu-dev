@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { api } from '../lib/api';
 
 const AuthContext = createContext();
 
@@ -24,38 +25,18 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Global fetch wrapper to ensure Authorization header for all /api calls
+  // Configure dedicated API client
   useEffect(() => {
-    const originalFetch = window.fetch.bind(window);
-
-    window.fetch = (input, init = {}) => {
-      try {
-        const url = typeof input === 'string' ? input : input?.url;
-        if (url && url.startsWith('/api')) {
-          const headers = new Headers(init.headers || {});
-          if (token && !headers.has('Authorization')) {
-            headers.set('Authorization', `Bearer ${token}`);
-          }
-          return originalFetch(input, { ...init, headers });
-        }
-        return originalFetch(input, init);
-      } catch (e) {
-        return originalFetch(input, init);
-      }
-    };
-
-    return () => {
-      window.fetch = originalFetch;
-    };
+    api.configure({
+      getToken: () => token,
+      onUnauthorized: () => logout(),
+      // baseUrl: import.meta.env.VITE_API_BASE || '' // optional, proxy by default
+    });
   }, [token]);
 
   const checkAuthStatus = async () => {
     try {
-      const response = await fetch('/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await api.request('/api/auth/me');
 
       if (response.ok) {
         const userData = await response.json();
@@ -74,11 +55,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await api.request('/api/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify({ email, password })
       });
 
@@ -99,11 +77,8 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await api.request('/api/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify(userData)
       });
 
@@ -124,11 +99,8 @@ export const AuthProvider = ({ children }) => {
 
   const microsoftSSO = async (accessToken, userInfo) => {
     try {
-      const response = await fetch('/api/auth/microsoft-sso', {
+      const response = await api.request('/api/auth/microsoft-sso', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify({
           access_token: accessToken,
           microsoft_id: userInfo.id,
@@ -157,12 +129,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       if (token) {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        await api.request('/api/auth/logout', { method: 'POST' });
       }
     } catch (error) {
       console.error('Logout error:', error);
@@ -170,17 +137,16 @@ export const AuthProvider = ({ children }) => {
       setToken(null);
       setUser(null);
       localStorage.removeItem('access_token');
+      // Clear persisted selections to avoid stale state across sessions
+      localStorage.removeItem('sherpa-gcm-selected-proposal');
+      localStorage.removeItem('sherpa-gcm-selected-resume');
     }
   };
 
   const updateProfile = async (profileData) => {
     try {
-      const response = await fetch('/api/auth/me', {
+      const response = await api.request('/api/auth/me', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify(profileData)
       });
 
@@ -197,21 +163,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Add authorization header to all API calls
+  // Add authorization header to API calls and handle 401
   const apiCall = async (url, options = {}) => {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...options.headers
-    };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    return fetch(url, {
-      ...options,
-      headers
-    });
+    return api.request(url, options);
   };
 
   const value = {

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { api } from '../lib/api';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
@@ -14,7 +14,6 @@ function ResumeEditorTab({
 }) {
   const iframeRef = useRef(null);
   const [showEditor, setShowEditor] = useState(false);
-  const { apiCall } = useAuth();
 
   // Function to write content to iframe
   const updateIframeContent = () => {
@@ -36,7 +35,7 @@ function ResumeEditorTab({
 
   const handleDownloadPDF = async () => {
     try {
-      const response = await apiCall(`/api/resumes/${editingResume.id}/pdf`);
+      const response = await api.request(`/api/resumes/${editingResume.id}/pdf`);
       
       if (response.status === 503) {
         const errorData = await response.json();
