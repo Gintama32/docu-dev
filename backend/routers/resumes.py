@@ -11,8 +11,13 @@ from .. import crud, schemas, models
 from ..database import get_db
 from ..pdf_generator import WEASYPRINT_AVAILABLE, generate_pdf_from_html
 from ..services.ai_service import ai_service
+from ..routers.auth import get_current_active_user
 
-router = APIRouter(prefix="/api", tags=["resumes"])
+router = APIRouter(
+    prefix="/api",
+    tags=["resumes"],
+    dependencies=[Depends(get_current_active_user)],
+)
 
 
 # Pydantic models for AI-related requests

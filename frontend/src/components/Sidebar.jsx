@@ -46,9 +46,9 @@ function Sidebar() {
         <ul>
           <li><Link to="/proposals">Proposals</Link></li>
         </ul>
-        <h3>Tools</h3>
+        <h3>Generate</h3>
         <ul>
-          <li><Link to="/resume">Resume Builder</Link></li>
+          <li><Link to="/resume">Resume</Link></li>
           <li><Link to="/project-sheet">Project Sheet</Link></li>
         </ul>
         <h3>Data</h3>

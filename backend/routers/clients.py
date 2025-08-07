@@ -3,8 +3,13 @@ from sqlalchemy.orm import Session
 from typing import List
 from .. import crud, schemas
 from ..database import get_db
+from ..routers.auth import get_current_active_user
 
-router = APIRouter(prefix="/api", tags=["clients"])
+router = APIRouter(
+    prefix="/api",
+    tags=["clients"],
+    dependencies=[Depends(get_current_active_user)],
+)
 
 @router.get("/clients", response_model=List[schemas.Client])
 def get_clients(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):

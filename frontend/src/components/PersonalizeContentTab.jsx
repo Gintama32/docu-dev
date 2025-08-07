@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../context/AuthContext';
 import ReorderModal from './ReorderModal';
 import './PersonalizeContentTab.css';
 
@@ -9,6 +10,7 @@ const PersonalizeContentTab = ({
   onBack,
   onGenerateResume 
 }) => {
+  const { apiCall } = useAuth();
   const [editedExperiences, setEditedExperiences] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
@@ -123,9 +125,8 @@ const PersonalizeContentTab = ({
   // Toggle between AI and custom version
   const toggleAIVersion = async (expId, useAI) => {
     try {
-      const response = await fetch('/api/toggle-ai-version', {
+      const response = await apiCall('/api/toggle-ai-version', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           resume_id: resumeId,
           experience_id: expId,
@@ -168,9 +169,8 @@ const PersonalizeContentTab = ({
   // Save custom description
   const saveCustomDescription = async (expId, description) => {
     try {
-      const response = await fetch('/api/update-experience-description', {
+      const response = await apiCall('/api/update-experience-description', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           resume_id: resumeId,
           experience_id: expId,
@@ -219,9 +219,8 @@ const PersonalizeContentTab = ({
     setSaveStatus({ type: 'info', message: 'Generating AI rewrites for all experiences...' });
 
     try {
-      const response = await fetch('/api/bulk-ai-rewrite', {
+      const response = await apiCall('/api/bulk-ai-rewrite', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ resume_id: resumeId })
       });
 
@@ -273,9 +272,8 @@ const PersonalizeContentTab = ({
     setSaveStatus({ type: 'info', message: 'Generating AI rewrite...' });
 
     try {
-      const response = await fetch('/api/single-ai-rewrite', {
+      const response = await apiCall('/api/single-ai-rewrite', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           resume_id: resumeId,
           experience_id: experienceId 
@@ -332,9 +330,8 @@ const PersonalizeContentTab = ({
     setSaveStatus({ type: 'info', message: 'Regenerating with custom prompt...' });
 
     try {
-      const response = await fetch('/api/ai-rewrite-with-prompt', {
+      const response = await apiCall('/api/ai-rewrite-with-prompt', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           experience_id: regenerateModalExp,
           custom_prompt: regeneratePrompt 
@@ -386,9 +383,8 @@ const PersonalizeContentTab = ({
   // Handle experience reordering
   const handleReorderExperiences = async (newOrder) => {
     try {
-      const response = await fetch('/api/reorder-experiences', {
+      const response = await apiCall('/api/reorder-experiences', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           resume_id: resumeId,
           experience_order: newOrder

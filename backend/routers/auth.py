@@ -97,7 +97,7 @@ def register(user_data: schemas.UserCreate, request: Request, db: Session = Depe
     
     return schemas.LoginResponse(
         access_token=access_token,
-        user=schemas.User.from_orm(db_user)
+        user=schemas.User.model_validate(db_user)
     )
 
 @router.post("/login", response_model=schemas.LoginResponse)
@@ -122,7 +122,7 @@ def login(login_data: schemas.LoginRequest, request: Request, db: Session = Depe
     
     return schemas.LoginResponse(
         access_token=access_token,
-        user=schemas.User.from_orm(user)
+        user=schemas.User.model_validate(user)
     )
 
 @router.post("/microsoft-sso", response_model=schemas.LoginResponse)
@@ -150,7 +150,7 @@ async def microsoft_sso(sso_data: schemas.MicrosoftSSORequest, request: Request,
     
     return schemas.LoginResponse(
         access_token=access_token,
-        user=schemas.User.from_orm(user)
+        user=schemas.User.model_validate(user)
     )
 
 @router.post("/logout")
@@ -164,7 +164,7 @@ def logout(credentials: HTTPAuthorizationCredentials = Depends(security), db: Se
 @router.get("/me", response_model=schemas.User)
 def get_current_user_profile(current_user: models.User = Depends(get_current_active_user)):
     """Get current user profile"""
-    return schemas.User.from_orm(current_user)
+    return schemas.User.model_validate(current_user)
 
 @router.put("/me", response_model=schemas.User)
 def update_current_user_profile(
@@ -181,7 +181,7 @@ def update_current_user_profile(
     db.commit()
     db.refresh(current_user)
     
-    return schemas.User.from_orm(current_user)
+    return schemas.User.model_validate(current_user)
 
 @router.get("/users", response_model=List[schemas.User])
 def get_users(
@@ -198,4 +198,4 @@ def get_users(
         )
     
     users = db.query(models.User).offset(skip).limit(limit).all()
-    return [schemas.User.from_orm(user) for user in users]
+    return [schemas.User.model_validate(user) for user in users]

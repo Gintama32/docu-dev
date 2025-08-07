@@ -3,8 +3,13 @@ from sqlalchemy.orm import Session
 from typing import List
 from .. import crud, schemas
 from ..database import get_db
+from ..routers.auth import get_current_active_user
 
-router = APIRouter(prefix="/api", tags=["proposals"])
+router = APIRouter(
+    prefix="/api",
+    tags=["proposals"],
+    dependencies=[Depends(get_current_active_user)],
+)
 
 @router.post("/proposals", response_model=schemas.ProjectProposal)
 def create_project_proposal(proposal: schemas.ProjectProposalCreate, db: Session = Depends(get_db)):

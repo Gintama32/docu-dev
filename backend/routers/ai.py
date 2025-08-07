@@ -1,7 +1,12 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from ..services.ai_service import ai_service
+from ..routers.auth import get_current_active_user
 
-router = APIRouter(prefix="/api", tags=["ai"])
+router = APIRouter(
+    prefix="/api",
+    tags=["ai"],
+    dependencies=[Depends(get_current_active_user)],
+)
 
 
 @router.get("/ai/models")

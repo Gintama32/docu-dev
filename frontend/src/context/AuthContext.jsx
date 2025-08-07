@@ -24,6 +24,31 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  // Global fetch wrapper to ensure Authorization header for all /api calls
+  useEffect(() => {
+    const originalFetch = window.fetch.bind(window);
+
+    window.fetch = (input, init = {}) => {
+      try {
+        const url = typeof input === 'string' ? input : input?.url;
+        if (url && url.startsWith('/api')) {
+          const headers = new Headers(init.headers || {});
+          if (token && !headers.has('Authorization')) {
+            headers.set('Authorization', `Bearer ${token}`);
+          }
+          return originalFetch(input, { ...init, headers });
+        }
+        return originalFetch(input, init);
+      } catch (e) {
+        return originalFetch(input, init);
+      }
+    };
+
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, [token]);
+
   const checkAuthStatus = async () => {
     try {
       const response = await fetch('/api/auth/me', {

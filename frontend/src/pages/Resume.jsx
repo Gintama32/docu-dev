@@ -14,7 +14,7 @@ import '../App.css';
 
 function Resume() {
   const navigate = useNavigate();
-  const { apiCall } = useAuth();
+  const { apiCall, user, loading: authLoading } = useAuth();
   const { selectedProposal, setSelectedProposal } = useProposal();
   const { selectedResume, setSelectedResume } = useResume();
 
@@ -55,6 +55,8 @@ function Resume() {
 
   // Fetch clients, all proposals, and all experiences on component mount
   useEffect(() => {
+    if (authLoading || !user) return;
+
     const fetchData = async () => {
       try {
         const [clientsResponse, proposalsResponse, experiencesResponse, contactsResponse] = await Promise.all([
@@ -96,15 +98,15 @@ function Resume() {
     };
 
     fetchData();
-  }, []);
+  }, [authLoading, user]);
 
   // Effect to fetch resumes when selectedProposal changes
   useEffect(() => {
-    if (selectedProposal) {
+    if (authLoading || !user || !selectedProposal) return;
       // Fetch resumes for the selected proposal
       const fetchResumes = async () => {
         try {
-          const response = await fetch(`/api/proposals/${selectedProposal.id}/resumes`);
+          const response = await apiCall(`/api/proposals/${selectedProposal.id}/resumes`);
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status} for resumes`);
           }
@@ -116,8 +118,7 @@ function Resume() {
         }
       };
       fetchResumes();
-    }
-  }, [selectedProposal]);
+  }, [authLoading, user, selectedProposal]);
 
   // Clear selected resume when proposal ID changes (not when the same proposal object updates)
   useEffect(() => {
@@ -249,11 +250,8 @@ function Resume() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/resumes', {
+      const response = await apiCall('/api/resumes', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           project_proposal_id: selectedProposal.id,
           alias: alias || null,
@@ -291,7 +289,7 @@ function Resume() {
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/resumes/${resumeId}`, {
+      const response = await apiCall(`/api/resumes/${resumeId}`, {
         method: 'DELETE',
       });
 
@@ -329,11 +327,8 @@ function Resume() {
 
     try {
       // Immediately save to database
-      const response = await fetch(`/api/resumes/${selectedResume.id}`, {
+      const response = await apiCall(`/api/resumes/${selectedResume.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           experience_ids: newSelectedExperiences,
         }),
@@ -368,11 +363,8 @@ function Resume() {
 
     try {
       // Just regenerate the resume content with existing experiences (no experience update)
-      const generateResponse = await fetch('/api/generate-final-resume', {
+      const generateResponse = await apiCall('/api/generate-final-resume', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           resume_id: selectedResume.id,
         }),
@@ -418,11 +410,8 @@ function Resume() {
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/resumes/${selectedResume.id}`, {
+      const response = await apiCall(`/api/resumes/${selectedResume.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           generated_content: editedResumeContent,
         }),
@@ -446,7 +435,7 @@ function Resume() {
 
   const handleExperienceSave = () => {
     if (selectedResume && selectedResume.id) {
-      fetch(`/api/resumes/${selectedResume.id}`)
+      apiCall(`/api/resumes/${selectedResume.id}`)
         .then(res => res.json())
         .then(data => {
           setEditedResumeContent(data.generated_content || '');
@@ -461,8 +450,9 @@ function Resume() {
 
   // Load experiences for the selected resume when it changes
   useEffect(() => {
+    if (authLoading || !user) return;
     if (selectedResume && selectedResume.id) {
-      fetch(`/api/resumes/${selectedResume.id}`)
+      apiCall(`/api/resumes/${selectedResume.id}`)
         .then(res => {
           if (!res.ok) {
             throw new Error(`HTTP error! status: ${res.status}`);
@@ -489,7 +479,7 @@ function Resume() {
       setSelectedExperiences([]);
       setEditedResumeContent('');
     }
-  }, [selectedResume]);
+  }, [authLoading, user, selectedResume]);
 
   // Show Resume List if no resume is selected, otherwise show resume-specific tabs
   if (selectedProposal && !selectedResume) {

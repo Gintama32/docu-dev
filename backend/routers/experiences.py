@@ -3,8 +3,13 @@ from sqlalchemy.orm import Session
 from typing import List
 from .. import crud, schemas
 from ..database import get_db
+from ..routers.auth import get_current_active_user
 
-router = APIRouter(prefix="/api", tags=["experiences"])
+router = APIRouter(
+    prefix="/api",
+    tags=["experiences"],
+    dependencies=[Depends(get_current_active_user)],
+)
 
 @router.get("/experiences", response_model=List[schemas.Experience])
 def get_experiences(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):

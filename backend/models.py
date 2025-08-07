@@ -27,7 +27,7 @@ class User(Base):
     avatar_url = Column(String, nullable=True)
     
     # Preferences
-    preferences = Column(JSON, nullable=True, default={})  # UI preferences, notifications, etc.
+    preferences = Column(JSON, nullable=True, default=dict)  # UI preferences, notifications, etc.
     
     # Timestamps
     created_at = Column(DateTime, default=func.now())

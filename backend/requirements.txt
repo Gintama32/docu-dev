@@ -5,11 +5,11 @@ alembic
 supabase
 psycopg2-binary
 weasyprint
-openai
 jinja2
 httpx
 pydantic
-python-jose[cryptography]
-passlib[bcrypt]
+PyJWT
+python-dotenv
+passlib
 python-multipart
 email-validator

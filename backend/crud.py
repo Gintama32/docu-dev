@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session, joinedload
 from . import models, schemas
+from .services.auth_service import auth_service
 
 def get_experience(db: Session, experience_id: int):
     return db.query(models.Experience).filter(models.Experience.id == experience_id).first()
@@ -170,3 +171,32 @@ def delete_resume(db: Session, resume_id: int):
 
 def get_resume(db: Session, resume_id: int):
     return db.query(models.Resume).filter(models.Resume.id == resume_id).first()
+
+
+def create_user(db: Session, user: schemas.UserCreate) -> models.User:
+    """Create a new user with hashed password.
+
+    Raises IntegrityError on duplicate email as enforced by the DB unique constraint.
+    """
+    if not user.password:
+        raise ValueError("Password is required to create a user")
+
+    hashed_password = auth_service.get_password_hash(user.password)
+
+    db_user = models.User(
+        email=user.email,
+        username=user.username,
+        full_name=user.full_name,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        department=user.department,
+        job_title=user.job_title,
+        phone=user.phone,
+        hashed_password=hashed_password,
+        is_active=True,
+    )
+
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
