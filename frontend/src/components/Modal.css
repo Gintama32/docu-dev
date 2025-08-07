@@ -1,0 +1,116 @@
+/* Generic Modal Component Styles - Used by ResumeListTab and other generic modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.modal-content {
+  background: #ffffff;
+  color: var(--text-primary);
+  padding: 30px; /* Default padding for modals not using header/body/footer structure */
+  border-radius: 12px;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+  position: relative;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  border: 1px solid var(--border-color);
+  z-index: 1001;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Override padding when using structured modal layout */
+.modal-content.structured-modal {
+  padding: 0;
+}
+
+.modal-close-button {
+  position: absolute;
+  top: 25px;
+  right: 25px;
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+  z-index: 10;
+}
+
+.modal-close-button:hover {
+  color: var(--text-primary);
+}
+
+/* Modal Layout Structure */
+.modal-header {
+  flex-shrink: 0;
+  padding: 30px 30px 0 30px;
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5em;
+  color: var(--text-primary);
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 30px;
+  min-height: 0; /* Allows flex child to shrink below content size */
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) var(--background-secondary);
+}
+
+.modal-footer {
+  flex-shrink: 0;
+  padding: 20px 30px 30px 30px;
+  border-top: 1px solid var(--border-light);
+}
+
+/* Custom scrollbar for modal body */
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: var(--background-secondary);
+  border-radius: 4px;
+  margin: 4px 0;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+  border: 1px solid var(--background-primary);
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+
+
+/* Dark Mode Adjustments */
+[data-theme="dark"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+[data-theme="dark"] .modal-content {
+  background: #1a202c;
+  border-color: #2d3748;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
+}

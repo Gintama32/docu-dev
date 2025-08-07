@@ -1,0 +1,156 @@
+.tabs-container {
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+.tabs-header {
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  background-color: var(--background-secondary);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.tab-button {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 0.95em;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  position: relative;
+  white-space: nowrap;
+}
+
+.tab-button:hover:not(.active) {
+  color: var(--text-primary);
+  background-color: var(--background-tertiary);
+}
+
+.tab-button.active {
+  color: var(--text-primary);
+  background-color: var(--background-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+}
+
+.tab-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tab-button:disabled:hover {
+  background-color: transparent;
+  color: var(--text-secondary);
+}
+
+/* Add icon support */
+.tab-button-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab-button-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Tab badge */
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-left: 8px;
+  background-color: var(--button-primary-background);
+  color: var(--button-primary-text);
+  border-radius: 10px;
+  font-size: 0.75em;
+  font-weight: 600;
+}
+
+/* Tab indicator for active state */
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 3px;
+  background-color: var(--button-primary-background);
+  border-radius: 2px;
+  opacity: 0;
+}
+
+/* Alternative style with pill design */
+.tabs-header.pills {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  padding: 0;
+  gap: 0;
+}
+
+.tabs-header.pills .tab-button {
+  border-radius: 0;
+  border-right: 1px solid var(--border-color);
+}
+
+.tabs-header.pills .tab-button:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.tabs-header.pills .tab-button:last-child {
+  border-radius: 0 8px 8px 0;
+  border-right: none;
+}
+
+.tabs-header.pills .tab-button.active {
+  background-color: var(--button-primary-background);
+  color: var(--button-primary-text);
+  box-shadow: none;
+}
+
+/* Content area */
+.tabs-content {
+  padding: 20px;
+  background-color: var(--background-primary);
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  min-height: 200px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .tabs-header {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .tab-button {
+    width: 100%;
+    text-align: left;
+    padding: 10px 16px;
+  }
+}

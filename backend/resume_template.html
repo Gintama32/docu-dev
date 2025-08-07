@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume</title>
+    <style>
+        /* Page Setup */
+        @page {
+            size: Letter;
+        }
+
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 16px;
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        /* Header Section */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 220px;
+            height: auto;
+        }
+
+        .header-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            text-align: right;
+        }
+
+        .name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .title {
+            font-size: 16px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        /* Main Layout */
+        .resume-container {
+            display: flex;
+            gap: 28px;
+            width: 100%;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            flex: 0 0 200px;
+            background: transparent;
+            padding: 14px 10px;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+            min-height: 500px;
+            font-size: 11px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 18px;
+        }
+
+        .sidebar-section-title {
+            font-size: 1em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+            color: #333;
+        }
+
+        .sidebar p {
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        .sidebar ul {
+            margin-left: 14px;
+            list-style-position: inside;
+        }
+
+        .sidebar ul li {
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+
+        .profile-picture {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+
+        .summary {
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: justify;
+            line-height: 1.4;
+        }
+
+        /* Projects Section */
+        .project {
+            margin-bottom: 16px;
+            text-align: justify;
+        }
+
+        .project:first-of-type {
+            margin-top: 0;
+        }
+
+        .project-title {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .project p {
+            line-height: 1.3;
+            margin-bottom: 0;
+        }
+
+        /* Print Optimizations */
+        @media print {
+            body {
+                margin: 0;
+            }
+            
+            .resume-container {
+                page-break-inside: avoid;
+            }
+            
+            .project {
+                page-break-inside: avoid;
+                margin-bottom: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-row">
+        <img src="{{ base_url }}/static/images/logo.jpg" alt="Company Logo" class="logo" />
+        <div class="header-text">
+            <div class="name">{{ resume.name or "Professional Name" }}</div>
+            <div class="title">{{ resume.title or "Professional Title" }}</div>
+        </div>
+    </div>
+
+    <div class="resume-container">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <img src="{{ base_url }}/static/images/pic.jpg" alt="Profile Picture" class="profile-picture" />
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">CONTACT</div>
+                <p>123 Main Street<br>
+                City, State 12345<br>
+                (555) 123-4567<br>
+                email@example.com</p>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">EDUCATION</div>
+                <p><strong>Degree Name</strong><br>
+                University Name<br>
+                Year</p>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">SKILLS</div>
+                <ul>
+                    <li>Project Management</li>
+                    <li>Construction Oversight</li>
+                    <li>Cost Estimation</li>
+                    <li>Team Leadership</li>
+                    <li>Quality Assurance</li>
+                </ul>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">CERTIFICATIONS</div>
+                <ul>
+                    <li>Professional Engineer (PE)</li>
+                    <li>Project Management Professional (PMP)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="summary">
+                <p>{{ proposal.context or "Professional summary highlighting key experience and expertise relevant to the project requirements." }}</p>
+            </div>
+
+            <div class="projects-section">
+                {% for exp in experiences %}
+                <div class="project">
+                    <h3 class="project-title">{{ exp.project_name }}</h3>
+                    <p>{{ exp.project_description }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
