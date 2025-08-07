@@ -64,10 +64,12 @@ def get_resume(resume_id: int, db: Session = Depends(get_db)):
     # Build response with experience details
     resume_data = {
         "id": resume.id,
+        "alias": resume.alias,
         "status": resume.status,
         "generated_content": resume.generated_content,
         "project_proposal_id": resume.project_proposal_id,
         "template_id": resume.template_id,
+        "user_profile_id": resume.user_profile_id,
         "created_at": resume.created_at,
         "updated_at": resume.updated_at,
         "resume_experience_details": []
@@ -196,7 +198,7 @@ def create_resume(resume: schemas.ResumeCreate, db: Session = Depends(get_db)):
         base_url="http://localhost:8001"  # Backend server URL for static assets
     )
     
-    resume.template_id = default_template.id
+    resume.template_id = resume.template_id or default_template.id
     resume.generated_content = generated_content
     resume.status = "draft"  # Set initial status
 

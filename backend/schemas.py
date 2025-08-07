@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from datetime import date, datetime
 
 # User schemas
@@ -234,6 +234,7 @@ class ResumeBase(BaseModel):
     project_proposal_id: int
     alias: Optional[str] = None  # User-friendly name for the resume
     template_id: Optional[int] = None # Made optional
+    user_profile_id: Optional[int] = None
     status: Optional[str] = 'draft' # Made optional
     generated_content: Optional[str] = None # Made optional
 
@@ -245,12 +246,83 @@ class ResumeUpdate(BaseModel):
     status: Optional[str] = None
     generated_content: Optional[str] = None
     experience_ids: Optional[List[int]] = None  # Allow updating experiences
+    user_profile_id: Optional[int] = None
 
 class Resume(ResumeBase):
     id: int
     created_at: datetime
     updated_at: datetime
     generated_content: Optional[str] = None # Ensure generated_content is included in the response
+
+    class Config:
+        from_attributes = True
+
+
+# Media schemas
+class MediaBase(BaseModel):
+    media_uri: Optional[str] = None
+    media_type: Optional[str] = None
+    size_bytes: Optional[int] = None
+
+class MediaCreate(MediaBase):
+    # Inline binary not accepted via this schema for now
+    pass
+
+class Media(MediaBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# UserProfile schemas
+class UserProfileBase(BaseModel):
+    user_id: int
+    main_image_id: Optional[int] = None
+    intro: Optional[str] = None
+    certificates: Optional[List[Union[str, Dict[str, Any]]]] = None
+
+class UserProfileCreate(UserProfileBase):
+    pass
+
+class UserProfileUpdate(BaseModel):
+    main_image_id: Optional[int] = None
+    intro: Optional[str] = None
+    certificates: Optional[List[Union[str, Dict[str, Any]]]] = None
+
+class UserProfile(UserProfileBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Project schemas
+class ProjectBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    date: Optional[date] = None
+    contract_value: Optional[float] = None
+    main_image_id: Optional[int] = None
+
+class ProjectCreate(ProjectBase):
+    pass
+
+class ProjectUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    date: Optional[date] = None
+    contract_value: Optional[float] = None
+    main_image_id: Optional[int] = None
+
+class Project(ProjectBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True

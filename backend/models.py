@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey, Numeric, Date, DateTime, func, JSON
+from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey, Numeric, Date, DateTime, func, JSON, LargeBinary
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -39,6 +39,7 @@ class User(Base):
     sessions = relationship("UserSession", back_populates="user")
     created_proposals = relationship("ProjectProposal", back_populates="created_by")
     notes = relationship("ProposalNote", back_populates="user")
+    user_profiles = relationship("UserProfile", back_populates="user")
 
 class UserSession(Base):
     __tablename__ = 'user_sessions'
@@ -112,6 +113,52 @@ class Template(Base):
 
     resumes = relationship("Resume", back_populates="template")
 
+
+class Media(Base):
+    __tablename__ = 'media'
+    id = Column(Integer, primary_key=True)
+    media_uri = Column(String, nullable=True)  # Optional external URI (e.g., S3)
+    media_type = Column(String, nullable=True)  # e.g., 'image/png'
+    image_content = Column(LargeBinary, nullable=True)  # Inline binary storage (optional)
+    size_bytes = Column(Integer, nullable=True)
+
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
+
+class UserProfile(Base):
+    __tablename__ = 'user_profiles'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+
+    main_image_id = Column(Integer, ForeignKey('media.id'), nullable=True)
+    intro = Column(Text, nullable=True)
+    certificates = Column(JSON, nullable=True)  # List of certificates or structured data
+
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    deleted_at = Column(DateTime, nullable=True)
+
+    user = relationship("User", back_populates="user_profiles")
+    main_image = relationship("Media")
+    resumes = relationship("Resume", back_populates="user_profile")
+
+
+class Project(Base):
+    __tablename__ = 'projects'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    date = Column(Date, nullable=True)
+    contract_value = Column(Numeric(12, 2), nullable=True)
+    main_image_id = Column(Integer, ForeignKey('media.id'), nullable=True)
+
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    deleted_at = Column(DateTime, nullable=True)
+
+    main_image = relationship("Media")
+
 class Resume(Base):
     __tablename__ = 'resumes'
     id = Column(Integer, primary_key=True)
@@ -124,6 +171,9 @@ class Resume(Base):
 
     template_id = Column(Integer, ForeignKey('templates.id'), nullable=False)
     template = relationship("Template", back_populates="resumes")
+
+    user_profile_id = Column(Integer, ForeignKey('user_profiles.id'), nullable=True)
+    user_profile = relationship("UserProfile", back_populates="resumes")
 
     # Relationship to ResumeExperienceDetail (ordered by display_order)
     resume_experience_details = relationship("ResumeExperienceDetail", back_populates="resume", cascade="all, delete-orphan", order_by="ResumeExperienceDetail.display_order")

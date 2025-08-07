@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from . import crud, models, schemas
 from .database import SessionLocal, engine
-from .routers import proposals, experiences, clients, templates, resumes, ai, auth
+from .routers import proposals, experiences, clients, templates, resumes, ai, auth, user_profiles, projects
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -47,6 +47,8 @@ app.include_router(clients.router)
 app.include_router(templates.router)
 app.include_router(resumes.router)
 app.include_router(ai.router)
+app.include_router(user_profiles.router)
+app.include_router(projects.router)
 
 
 @app.on_event("startup")
