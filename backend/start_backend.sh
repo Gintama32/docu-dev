@@ -16,4 +16,6 @@ echo "Starting backend with WeasyPrint support..."
 echo "Library paths configured for Homebrew installations"
 
 # Change to backend directory and start the FastAPI server
-uv run uvicorn backend.main:app --reload --port 8001
+mkdir -p "$SCRIPT_DIR/logs"
+UVICORN_LOG_LEVEL=${UVICORN_LOG_LEVEL:-info}
+uv run uvicorn backend.main:app --reload --port 8001 --log-level $UVICORN_LOG_LEVEL | tee -a "$SCRIPT_DIR/logs/uvicorn.out"

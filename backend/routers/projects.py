@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from datetime import date
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
@@ -21,8 +22,8 @@ def create_project(project: schemas.ProjectCreate, db: Session = Depends(get_db)
     return crud.create_project(db, project)
 
 @router.put("/projects/{project_id}", response_model=schemas.Project)
-def update_project(project_id: int, project_update: schemas.ProjectUpdate, db: Session = Depends(get_db)):
-    updated = crud.update_project(db, project_id, project_update)
+def update_project(project_id: int, project: schemas.ProjectUpdate, db: Session = Depends(get_db)):
+    updated = crud.update_project(db, project_id, project)
     if not updated:
         raise HTTPException(status_code=404, detail="Project not found")
     return updated

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Modal from './Modal';
+import { api } from '../lib/api';
 
 function ResumeListTab({ 
   resumes, 
@@ -11,10 +12,14 @@ function ResumeListTab({
 }) {
   const [showCreateResumeModal, setShowCreateResumeModal] = useState(false);
   const [newResumeAlias, setNewResumeAlias] = useState('');
+  const [userProfiles, setUserProfiles] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [selectedProfileId, setSelectedProfileId] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
 
   const handleCreateResume = (e) => {
     e.preventDefault();
-    onCreateNewResume(newResumeAlias);
+    onCreateNewResume(newResumeAlias, selectedProfileId ? Number(selectedProfileId) : null, selectedTemplateId ? Number(selectedTemplateId) : null);
     setNewResumeAlias('');
     setShowCreateResumeModal(false);
   };
@@ -22,6 +27,34 @@ function ResumeListTab({
   const getDisplayName = (resume, index) => {
     return resume.alias || `Resume #${index + 1}`;
   };
+
+  useEffect(() => {
+    if (!showCreateResumeModal) return;
+    (async () => {
+      try {
+        const [profilesRes, templatesRes, defaultTplRes] = await Promise.all([
+          api.json('/api/user-profiles?only_mine=true'),
+          api.json('/api/templates'),
+          api.json('/api/templates/default')
+        ]);
+        if (profilesRes.response.ok) {
+          const profs = profilesRes.data || [];
+          setUserProfiles(profs);
+          if (profs.length > 0) setSelectedProfileId(String(profs[0].id));
+        }
+        let temps = [];
+        if (templatesRes.response.ok) temps = templatesRes.data || [];
+        if (defaultTplRes.response?.ok && defaultTplRes.data) {
+          const def = defaultTplRes.data;
+          if (!temps.find(t => t.id === def.id)) temps.unshift(def);
+        }
+        setTemplates(temps);
+        if (temps.length > 0) setSelectedTemplateId(String(temps[0].id));
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, [showCreateResumeModal]);
 
   return (
     <div className="resume-list-tab">
@@ -111,6 +144,35 @@ function ResumeListTab({
                 Give your resume a meaningful name, or leave blank to auto-generate
               </small>
             </div>
+
+            <div className="form-group">
+              <label>User Profile</label>
+              {userProfiles.length > 0 ? (
+                <select value={selectedProfileId} onChange={(e)=>setSelectedProfileId(e.target.value)}>
+                  <option value="">Select profile…</option>
+                  {userProfiles.map(p => (
+                    <option key={p.id} value={p.id}>Profile #{p.id}</option>
+                  ))}
+                </select>
+              ) : (
+                <div className="form-help">No profiles found. Create one under Personnel.</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label>Template</label>
+              {templates.length > 0 ? (
+                <select value={selectedTemplateId} onChange={(e)=>setSelectedTemplateId(e.target.value)}>
+                  <option value="">Default template</option>
+                  {templates.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <div className="form-help">Using default template.</div>
+              )}
+            </div>
+
             <div className="form-actions">
               <button type="submit" className="button-primary">Create Resume</button>
               <button 

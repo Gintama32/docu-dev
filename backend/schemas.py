@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator, Field
 from typing import List, Optional, Dict, Any, Union
 from datetime import date, datetime
 
@@ -247,6 +247,7 @@ class ResumeUpdate(BaseModel):
     generated_content: Optional[str] = None
     experience_ids: Optional[List[int]] = None  # Allow updating experiences
     user_profile_id: Optional[int] = None
+    template_id: Optional[int] = None
 
 class Resume(ResumeBase):
     id: int
@@ -305,24 +306,68 @@ class UserProfile(UserProfileBase):
 class ProjectBase(BaseModel):
     name: str
     description: Optional[str] = None
-    date: Optional[date] = None
     contract_value: Optional[float] = None
     main_image_id: Optional[int] = None
 
 class ProjectCreate(ProjectBase):
-    pass
+    date: Any = None  # Accept any type, convert in validator
+    
+    @field_validator('date', mode='before')
+    @classmethod
+    def parse_date_string(cls, v):
+        if v is None or v == '':
+            return None
+        if isinstance(v, str):
+            try:
+                return date.fromisoformat(v)
+            except ValueError:
+                raise ValueError("Date must be in ISO format (YYYY-MM-DD)")
+        if isinstance(v, date):
+            return v
+        # For any other type, try to convert to None
+        return None
 
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
-    date: Optional[date] = None
+    date: Any = None  # Accept any type, convert in validator
     contract_value: Optional[float] = None
     main_image_id: Optional[int] = None
+    
+    @field_validator('date', mode='before')
+    @classmethod
+    def parse_date_string(cls, v):
+        if v is None or v == '':
+            return None
+        if isinstance(v, str):
+            try:
+                return date.fromisoformat(v)
+            except ValueError:
+                raise ValueError("Date must be in ISO format (YYYY-MM-DD)")
+        if isinstance(v, date):
+            return v
+        # For any other type, try to convert to None
+        return None
 
 class Project(ProjectBase):
     id: int
+    date: Any = None
     created_at: datetime
     updated_at: datetime
 
     class Config:
         from_attributes = True
+    
+    @field_validator('date', mode='before')
+    @classmethod
+    def parse_date_for_response(cls, v):
+        if v is None or v == '':
+            return None
+        if isinstance(v, str):
+            try:
+                return date.fromisoformat(v)
+            except ValueError:
+                return None
+        if isinstance(v, date):
+            return v
+        return None

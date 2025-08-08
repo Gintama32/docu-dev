@@ -230,7 +230,7 @@ function Resume() {
     }
   };
 
-  const handleCreateNewResume = async (alias) => {
+  const handleCreateNewResume = async (alias, userProfileId, templateId) => {
     if (!selectedProposal) {
       setError('Please select a proposal first.');
       return;
@@ -245,6 +245,8 @@ function Resume() {
         body: JSON.stringify({
           project_proposal_id: selectedProposal.id,
           alias: alias || null,
+          user_profile_id: userProfileId || null,
+          template_id: templateId || null,
           experience_ids: [],
         }),
       });
@@ -783,6 +785,10 @@ function Resume() {
                       handleUpdateResume={handleRegenerateResume}
           selectedExperiences={selectedExperiences}
           onClose={() => setSelectedResume(null)}
+          onResumeUpdated={(updated) => {
+            setResumesForProposal(resumesForProposal.map(r => r.id === updated.id ? updated : r));
+            setSelectedResume(updated);
+          }}
         />
       ),
     },

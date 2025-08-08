@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session, joinedload
+from typing import Optional
 from . import models, schemas
 from .services.auth_service import auth_service
 
@@ -129,6 +130,9 @@ def get_user_profiles(db: Session, skip: int = 0, limit: int = 100, q: str | Non
         )
     return query.offset(skip).limit(limit).all()
 
+def get_user_profiles_for_user(db: Session, user_id: int, skip: int = 0, limit: int = 100):
+    return db.query(models.UserProfile).filter(models.UserProfile.user_id == user_id).offset(skip).limit(limit).all()
+
 def create_user_profile(db: Session, profile: schemas.UserProfileCreate):
     db_prof = models.UserProfile(**profile.dict())
     db.add(db_prof)
@@ -177,12 +181,61 @@ def create_project(db: Session, project: schemas.ProjectCreate):
     db.refresh(db_project)
     return db_project
 
+def create_project_from_fields(
+    db: Session,
+    *,
+    name: str,
+    description: Optional[str] = None,
+    date=None,
+    contract_value: Optional[float] = None,
+    main_image_id: Optional[int] = None,
+):
+    db_project = models.Project(
+        name=name,
+        description=description,
+        date=date,
+        contract_value=contract_value,
+        main_image_id=main_image_id,
+    )
+    db.add(db_project)
+    db.commit()
+    db.refresh(db_project)
+    return db_project
+
 def update_project(db: Session, project_id: int, project_update: schemas.ProjectUpdate):
     db_project = get_project(db, project_id)
     if not db_project:
         return None
     for key, value in project_update.dict(exclude_unset=True).items():
         setattr(db_project, key, value)
+    db.add(db_project)
+    db.commit()
+    db.refresh(db_project)
+    return db_project
+
+def update_project_from_fields(
+    db: Session,
+    project_id: int,
+    *,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    date=None,
+    contract_value: Optional[float] = None,
+    main_image_id: Optional[int] = None,
+):
+    db_project = get_project(db, project_id)
+    if not db_project:
+        return None
+    if name is not None:
+        db_project.name = name
+    if description is not None:
+        db_project.description = description
+    if date is not None or date is None:
+        db_project.date = date
+    if contract_value is not None or contract_value is None:
+        db_project.contract_value = contract_value
+    if main_image_id is not None or main_image_id is None:
+        db_project.main_image_id = main_image_id
     db.add(db_project)
     db.commit()
     db.refresh(db_project)
@@ -319,3 +372,38 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+# Media CRUD
+def list_media(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Media).order_by(models.Media.created_at.desc()).offset(skip).limit(limit).all()
+
+def get_media(db: Session, media_id: int):
+    return db.query(models.Media).filter(models.Media.id == media_id).first()
+
+def create_media(
+    db: Session,
+    *,
+    media_type: Optional[str] = None,
+    size_bytes: Optional[int] = None,
+    image_content: Optional[bytes] = None,
+    media_uri: Optional[str] = None,
+) -> models.Media:
+    media = models.Media(
+        media_uri=media_uri,
+        media_type=media_type,
+        size_bytes=size_bytes,
+        image_content=image_content,
+    )
+    db.add(media)
+    db.commit()
+    db.refresh(media)
+    return media
+
+def delete_media(db: Session, media_id: int) -> bool:
+    media = db.query(models.Media).filter(models.Media.id == media_id).first()
+    if not media:
+        return False
+    db.delete(media)
+    db.commit()
+    return True

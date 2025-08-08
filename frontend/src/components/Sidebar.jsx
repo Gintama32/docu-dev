@@ -55,7 +55,7 @@ function Sidebar() {
         <ul>
           <li><Link to="/experience">Experience</Link></li>
           <li><Link to="/projects">Projects</Link></li>
-          <li><Link to="/personnel">Personnel</Link></li>
+          <li><Link to="/personnel">Profiles</Link></li>
         </ul>
       </nav>
       <div className="sidebar-footer">

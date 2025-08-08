@@ -11,9 +11,11 @@ function ResumeEditorTab({
   handleUpdateResume,
   selectedExperiences,
   onClose,
+  onResumeUpdated,
 }) {
   const iframeRef = useRef(null);
   const [showEditor, setShowEditor] = useState(false);
+  const [templates, setTemplates] = useState([]);
 
   // Function to write content to iframe
   const updateIframeContent = () => {
@@ -32,6 +34,24 @@ function ResumeEditorTab({
       setTimeout(updateIframeContent, 0);
     }
   }, [editedResumeContent, showEditor]);
+
+  // Load templates for the template select
+  useEffect(() => {
+    (async () => {
+      try {
+        const [{ response: listRes, data: list }, { response: defRes, data: def }] = await Promise.all([
+          api.json('/api/templates'),
+          api.json('/api/templates/default')
+        ]);
+        let temps = [];
+        if (listRes.ok) temps = list || [];
+        if (defRes?.ok && def) {
+          if (!temps.find(t => t.id === def.id)) temps.unshift(def);
+        }
+        setTemplates(temps);
+      } catch (_) {}
+    })();
+  }, []);
 
   const handleDownloadPDF = async () => {
     try {
@@ -75,7 +95,7 @@ function ResumeEditorTab({
   return (
     <div className="resume-editor-container">
       <div className="resume-editor-header">
-        <div>
+        <div style={{ display: 'flex', gap: 8 }}>
           <button 
              type="button" 
              className="button-primary button-with-icon"
@@ -85,6 +105,36 @@ function ResumeEditorTab({
              <RefreshIcon style={{ fontSize: '20px' }} />
              Regenerate
            </button>
+          <select
+            value={editingResume?.template_id || ''}
+            onChange={async (e) => {
+              const tplId = e.target.value ? Number(e.target.value) : null;
+              try {
+                const res = await api.request(`/api/resumes/${editingResume.id}`, {
+                  method: 'PUT',
+                  body: JSON.stringify({ template_id: tplId })
+                });
+                if (!res.ok) return;
+                const updated = await res.json();
+                if (typeof onResumeUpdated === 'function') onResumeUpdated(updated);
+                // Regenerate to apply template immediately
+                const regen = await api.request('/api/generate-final-resume', {
+                  method: 'POST',
+                  body: JSON.stringify({ resume_id: updated.id })
+                });
+                if (regen.ok) {
+                  const regenData = await regen.json();
+                  if (regenData.generated_content) setEditedResumeContent(regenData.generated_content);
+                }
+              } catch(_) {}
+            }}
+            title="Switch template"
+          >
+            <option value="">Select Template</option>
+            {templates.map(t => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
         </div>
         <div className="resume-editor-actions">
           <button 

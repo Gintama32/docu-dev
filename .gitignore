@@ -1,5 +1,7 @@
 frontend/dist
 backend/__pycache__
+backend/static/uploads
+backend/logs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

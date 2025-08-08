@@ -13,7 +13,16 @@ router = APIRouter(
 )
 
 @router.get("/user-profiles", response_model=List[schemas.UserProfile])
-def list_user_profiles(q: Optional[str] = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def list_user_profiles(
+    q: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 100,
+    only_mine: bool = True,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_active_user)
+):
+    if only_mine and current_user:
+        return crud.get_user_profiles_for_user(db, user_id=current_user.id, skip=skip, limit=limit)
     return crud.get_user_profiles(db, skip=skip, limit=limit, q=q)
 
 @router.post("/user-profiles", response_model=schemas.UserProfile)
