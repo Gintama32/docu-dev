@@ -2,17 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
+import Confirm from '../components/Confirm';
+import { useToast } from '../components/Toast';
 import MediaPicker from '../components/MediaPicker';
 import '../App.css';
 import './Proposals.css';
 
 function Personnel() {
   const { user } = useAuth();
+  const toast = useToast();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState('');
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [form, setForm] = useState({
     user_id: '',
     main_image_id: '',
@@ -71,9 +75,21 @@ function Personnel() {
   };
 
   const onDelete = async (item) => {
-    if (!confirm('Delete this user profile?')) return;
-    const response = await api.request(`/api/user-profiles/${item.id}`, { method: 'DELETE' });
-    if (response.ok) { if (editing?.id === item.id) resetForm(); fetchList(q); }
+    setConfirmDeleteId(item.id);
+  };
+
+  const confirmDelete = async () => {
+    const id = confirmDeleteId;
+    if (!id) return;
+    const response = await api.request(`/api/user-profiles/${id}`, { method: 'DELETE' });
+    if (response.ok) {
+      if (editing?.id === id) resetForm();
+      fetchList(q);
+      toast.success('Profile deleted');
+    } else {
+      toast.error('Failed to delete profile');
+    }
+    setConfirmDeleteId(null);
   };
 
   return (
@@ -159,6 +175,16 @@ function Personnel() {
           </form>
         </Modal>
       )}
+
+      <Confirm
+        open={!!confirmDeleteId}
+        title="Delete user profile?"
+        message="This action cannot be undone."
+        destructive
+        confirmLabel="Delete"
+        onCancel={() => setConfirmDeleteId(null)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { api } from '../lib/api';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import { useToast } from './Toast';
 
 function ResumeEditorTab({
   editingResume,
@@ -13,6 +14,7 @@ function ResumeEditorTab({
   onClose,
   onResumeUpdated,
 }) {
+  const toast = useToast();
   const iframeRef = useRef(null);
   const [showEditor, setShowEditor] = useState(false);
   const [templates, setTemplates] = useState([]);
@@ -56,20 +58,17 @@ function ResumeEditorTab({
   const handleDownloadPDF = async () => {
     try {
       const response = await api.request(`/api/resumes/${editingResume.id}/pdf`);
-      
+
       if (response.status === 503) {
         const errorData = await response.json();
-        alert(`PDF generation is not available.\n\n${errorData.message}\n\nAlternative: ${errorData.instructions.alternative}`);
-        
+        toast.error('PDF generation is not available. Using print as fallback.');
         // Offer to print instead
-        if (window.confirm('Would you like to print the resume instead? You can save it as PDF from the print dialog.')) {
-          handlePrintResume();
-        }
+        handlePrintResume();
         return;
       }
-      
+
       if (!response.ok) throw new Error('PDF download failed');
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -79,9 +78,10 @@ function ResumeEditorTab({
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      toast.success('PDF download started.');
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      alert('Failed to download PDF. You can use the Print option (Ctrl+P or Cmd+P) to save as PDF instead.');
+      toast.error('Failed to download PDF. Use the Print option to save as PDF.');
     }
   };
 

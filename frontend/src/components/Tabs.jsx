@@ -1,19 +1,47 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './Tabs.css';
 
-function Tabs({ tabs, defaultTab, variant = 'default', onChange }) {
-  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.label);
+// Supports both controlled and uncontrolled usage.
+// - Uncontrolled: provide optional defaultTab
+// - Controlled: provide activeTab and either onChange or setActiveTab (legacy)
+function Tabs({
+  tabs,
+  defaultTab,
+  activeTab: controlledActiveTab,
+  setActiveTab: setActiveTabProp,
+  variant = 'default',
+  onChange,
+}) {
+  const [internalActiveTab, setInternalActiveTab] = useState(
+    defaultTab || tabs[0]?.label
+  );
+
+  const isControlled = controlledActiveTab !== undefined && controlledActiveTab !== null;
+  const activeTab = isControlled ? controlledActiveTab : internalActiveTab;
 
   useEffect(() => {
-    if (defaultTab) {
-      setActiveTab(defaultTab);
+    if (!isControlled && defaultTab) {
+      setInternalActiveTab(defaultTab);
     }
-  }, [defaultTab]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultTab, isControlled]);
+
+  // Ensure active tab always exists among provided tabs
+  const activeContent = useMemo(() => {
+    const active = tabs.find((tab) => tab.label === activeTab);
+    return active ? active.content : tabs[0]?.content;
+  }, [tabs, activeTab]);
 
   const handleTabChange = (tabLabel) => {
-    setActiveTab(tabLabel);
-    if (onChange) {
+    if (!isControlled) {
+      setInternalActiveTab(tabLabel);
+    }
+    if (typeof onChange === 'function') {
       onChange(tabLabel);
+    }
+    // Backward-compatible: support setActiveTab prop if provided
+    if (typeof setActiveTabProp === 'function') {
+      setActiveTabProp(tabLabel);
     }
   };
 
@@ -34,15 +62,11 @@ function Tabs({ tabs, defaultTab, variant = 'default', onChange }) {
               </span>
             )}
             {!tab.icon && tab.label}
-            {tab.badge && (
-              <span className="tab-badge">{tab.badge}</span>
-            )}
+            {tab.badge && <span className="tab-badge">{tab.badge}</span>}
           </button>
         ))}
       </div>
-      <div className="tabs-content">
-        {tabs.find((tab) => tab.label === activeTab)?.content}
-      </div>
+      <div className="tabs-content">{activeContent}</div>
     </div>
   );
 }

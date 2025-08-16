@@ -26,6 +26,7 @@
   transition: all 0.2s ease;
   position: relative;
   white-space: nowrap;
+  border: 1px solid transparent; /* enables subtle active border */
 }
 
 .tab-button:hover:not(.active) {
@@ -36,7 +37,8 @@
 .tab-button.active {
   color: var(--text-primary);
   background-color: var(--background-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-color: var(--border-color);
+  box-shadow: none;
   font-weight: 600;
 }
 
@@ -78,18 +80,14 @@
   font-weight: 600;
 }
 
-/* Tab indicator for active state */
-.tab-button.active::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 30px;
-  height: 3px;
-  background-color: var(--button-primary-background);
-  border-radius: 2px;
-  opacity: 0;
+/* Remove the old blue bar indicator for a cleaner look */
+.tab-button.active::after { content: none; }
+
+/* Subtle, accessible focus styles */
+.tab-button:focus { outline: none; }
+.tab-button:focus-visible {
+  outline: 2px solid var(--input-focus-border);
+  outline-offset: 2px;
 }
 
 /* Alternative style with pill design */

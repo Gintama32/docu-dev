@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 function Sidebar() {
@@ -44,18 +44,42 @@ function Sidebar() {
       </div>
       <nav>
         <ul>
-          <li><Link to="/proposals">Proposals</Link></li>
+          <li>
+            <NavLink to="/proposals" className={({ isActive }) => isActive ? 'active' : ''}>
+              Proposals
+            </NavLink>
+          </li>
         </ul>
         <h3>Generate</h3>
         <ul>
-          <li><Link to="/resume">Resume</Link></li>
-          <li><Link to="/project-sheet">Project Sheet</Link></li>
+          <li>
+            <NavLink to="/resume" className={({ isActive }) => isActive ? 'active' : ''}>
+              Resume
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/project-sheet" className={({ isActive }) => isActive ? 'active' : ''}>
+              Project Sheet
+            </NavLink>
+          </li>
         </ul>
         <h3>Data</h3>
         <ul>
-          <li><Link to="/experience">Experience</Link></li>
-          <li><Link to="/projects">Projects</Link></li>
-          <li><Link to="/personnel">Profiles</Link></li>
+          <li>
+            <NavLink to="/experience" className={({ isActive }) => isActive ? 'active' : ''}>
+              Experience
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/projects" className={({ isActive }) => isActive ? 'active' : ''}>
+              Projects
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/personnel" className={({ isActive }) => isActive ? 'active' : ''}>
+              Profiles
+            </NavLink>
+          </li>
         </ul>
       </nav>
       <div className="sidebar-footer">

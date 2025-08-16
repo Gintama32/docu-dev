@@ -1,8 +1,8 @@
 /* Personalize Content Tab Styles */
 .personalize-content-tab {
   padding: 20px;
-  max-width: 1000px;
-  margin: 0 auto;
+  max-width: none; /* allow full width within content area */
+  margin: 0;       /* align left with page content */
   color: var(--text-primary);
 }
 

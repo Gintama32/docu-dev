@@ -2,10 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
 import { useData } from '../context/DataContext';
 import Modal from '../components/Modal';
+import Confirm from '../components/Confirm';
+import { useToast } from '../components/Toast';
 import '../App.css';
 import './Proposals.css';
 
 function Experience() {
+  const toast = useToast();
   const { getClients, getContacts } = useData();
   const [clients, setClients] = useState([]);
   const [contacts, setContacts] = useState([]);
@@ -99,13 +102,24 @@ function Experience() {
     setShowForm(true);
   };
 
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+
   const onDelete = async (item) => {
-    if (!confirm(`Delete experience "${item.project_name}"?`)) return;
-    const response = await api.request(`/api/experiences/${item.id}`, { method: 'DELETE' });
+    setConfirmDeleteId(item.id);
+  };
+
+  const confirmDelete = async () => {
+    const id = confirmDeleteId;
+    if (!id) return;
+    const response = await api.request(`/api/experiences/${id}`, { method: 'DELETE' });
     if (response.ok) {
-      if (editing?.id === item.id) resetForm();
+      if (editing?.id === id) resetForm();
       fetchList(q);
+      toast.success('Experience deleted');
+    } else {
+      toast.error('Failed to delete experience');
     }
+    setConfirmDeleteId(null);
   };
 
   const clientMap = useMemo(() => Object.fromEntries((clients || []).map(c => [c.id, c.client_name])), [clients]);
@@ -237,6 +251,16 @@ function Experience() {
           </form>
         </Modal>
       )}
+
+      <Confirm
+        open={!!confirmDeleteId}
+        title="Delete experience?"
+        message="This action cannot be undone."
+        destructive
+        confirmLabel="Delete"
+        onCancel={() => setConfirmDeleteId(null)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

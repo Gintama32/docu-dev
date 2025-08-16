@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../components/Modal';
+import Confirm from '../components/Confirm';
 import Tabs from '../components/Tabs';
 import ResumeListTab from '../components/ResumeListTab';
 import ExperienceSelectionTab from '../components/ExperienceSelectionTab';
@@ -11,12 +12,14 @@ import { useResume } from '../context/ResumeContext';
 import { api } from '../lib/api';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/Toast';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import '../App.css';
 
 function Resume() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const toast = useToast();
   const { getClients, getContacts, getExperiences, getProposals } = useData();
   const { selectedProposal, setSelectedProposal } = useProposal();
   const { selectedResume, setSelectedResume } = useResume();
@@ -32,6 +35,7 @@ function Resume() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   // Proposal form state
   const [proposalFormData, setProposalFormData] = useState({
@@ -275,32 +279,27 @@ function Resume() {
   };
 
   const handleDeleteResume = async (resumeId) => {
-    if (!window.confirm('Are you sure you want to delete this resume?')) {
-      return;
-    }
+    setConfirmDeleteId(resumeId);
+  };
 
+  const confirmDeleteResume = async () => {
+    const resumeId = confirmDeleteId;
+    if (!resumeId) return;
     setLoading(true);
     try {
       const response = await api.request(`/api/resumes/${resumeId}`, {
         method: 'DELETE',
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       setResumesForProposal(resumesForProposal.filter(r => r.id !== resumeId));
-      
-      if (selectedResume?.id === resumeId) {
-        setSelectedResume(null);
-      }
-      
-      alert('Resume deleted successfully!');
+      if (selectedResume?.id === resumeId) setSelectedResume(null);
+      toast.success('Resume deleted successfully!');
     } catch (error) {
       setError('Failed to delete resume.');
       console.error('Error deleting resume:', error);
     } finally {
       setLoading(false);
+      setConfirmDeleteId(null);
     }
   };
 
@@ -416,7 +415,7 @@ function Resume() {
       const updatedResume = await response.json();
       setResumesForProposal(resumesForProposal.map(r => r.id === updatedResume.id ? updatedResume : r));
       setSelectedResume(updatedResume);
-      alert('Resume updated successfully!');
+      toast.success('Resume updated successfully!');
     } catch (error) {
       setError('Failed to save resume changes.');
       console.error('Error saving resume changes:', error);
@@ -888,6 +887,17 @@ function Resume() {
           </div>
         </Modal>
       )}
+
+      {/* Confirm delete resume */}
+      <Confirm
+        open={!!confirmDeleteId}
+        title="Delete resume?"
+        message="This action cannot be undone."
+        destructive
+        confirmLabel="Delete"
+        onCancel={() => setConfirmDeleteId(null)}
+        onConfirm={confirmDeleteResume}
+      />
     </div>
   );
 }

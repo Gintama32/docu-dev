@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import Modal from '../components/Modal';
+import Confirm from '../components/Confirm';
+import { useToast } from '../components/Toast';
 import MediaPicker from '../components/MediaPicker';
 import '../App.css';
 import './Proposals.css';
 
 function Projects() {
+  const toast = useToast();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState('');
@@ -61,10 +64,24 @@ function Projects() {
     setShowForm(true);
   };
 
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+
   const onDelete = async (item) => {
-    if (!confirm(`Delete project "${item.name}"?`)) return;
-    const response = await api.request(`/api/projects/${item.id}`, { method: 'DELETE' });
-    if (response.ok) { if (editing?.id === item.id) resetForm(); fetchList(q); }
+    setConfirmDeleteId(item.id);
+  };
+
+  const confirmDelete = async () => {
+    const id = confirmDeleteId;
+    if (!id) return;
+    const response = await api.request(`/api/projects/${id}`, { method: 'DELETE' });
+    if (response.ok) {
+      if (editing?.id === id) resetForm();
+      fetchList(q);
+      toast.success('Project deleted');
+    } else {
+      toast.error('Failed to delete project');
+    }
+    setConfirmDeleteId(null);
   };
 
   return (
@@ -149,6 +166,16 @@ function Projects() {
           </form>
         </Modal>
       )}
+
+      <Confirm
+        open={!!confirmDeleteId}
+        title="Delete project?"
+        message="This action cannot be undone."
+        destructive
+        confirmLabel="Delete"
+        onCancel={() => setConfirmDeleteId(null)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

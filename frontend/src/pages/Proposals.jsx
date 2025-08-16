@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../components/Modal';
+import Confirm from '../components/Confirm';
+import { useToast } from '../components/Toast';
 import { api } from '../lib/api';
 import { useData } from '../context/DataContext';
 import './Proposals.css';
 
 function Proposals() {
   const { getClients, getContacts, getProposals } = useData();
+  const toast = useToast();
   const [proposals, setProposals] = useState([]);
   const [filteredProposals, setFilteredProposals] = useState([]);
   const [clients, setClients] = useState([]);
@@ -14,6 +17,7 @@ function Proposals() {
   const [error, setError] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingProposal, setEditingProposal] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   
   // Filter states
   const [filters, setFilters] = useState({
@@ -220,20 +224,25 @@ function Proposals() {
   };
 
   const handleDeleteProposal = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this proposal?')) return;
+    setConfirmDeleteId(id);
+  };
 
+  const confirmDelete = async () => {
+    const id = confirmDeleteId;
+    if (!id) return;
     try {
-      const response = await api.request(`/api/proposals/${id}`, {
-        method: 'DELETE'
-      });
-
+      const response = await api.request(`/api/proposals/${id}`, { method: 'DELETE' });
       if (response.ok) {
         await loadProposals();
+        toast.success('Proposal deleted');
       } else {
         throw new Error('Failed to delete proposal');
       }
     } catch (err) {
       setError('Failed to delete proposal: ' + err.message);
+      toast.error('Failed to delete proposal');
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
 
@@ -383,6 +392,17 @@ function Proposals() {
           </div>
         )}
       </div>
+
+      {/* Confirm delete */}
+      <Confirm 
+        open={!!confirmDeleteId}
+        title="Delete proposal?"
+        message="This action cannot be undone."
+        destructive
+        confirmLabel="Delete"
+        onCancel={() => setConfirmDeleteId(null)}
+        onConfirm={confirmDelete}
+      />
 
       {/* Create/Edit Modal */}
       {showCreateModal && (
