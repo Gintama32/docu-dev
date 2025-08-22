@@ -1,0 +1,211 @@
+/* Unified Table System - Consistent styling for all tables */
+
+/* Common table container */
+.unified-table-container {
+  background: var(--background-primary);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
+
+/* HTML Table Approach */
+.unified-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.unified-table th {
+  background: var(--background-secondary);
+  color: var(--text-primary);
+  font-weight: 600;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.unified-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.unified-table tbody tr {
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.unified-table tbody tr:hover {
+  background: var(--background-tertiary);
+}
+
+.unified-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* CSS Grid Approach */
+.unified-grid-table {
+  display: flex;
+  flex-direction: column;
+}
+
+.unified-grid-header {
+  display: grid;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--background-secondary);
+  border-bottom: 2px solid var(--border-color);
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.unified-grid-row {
+  display: grid;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-light);
+  transition: background-color 0.2s ease;
+  align-items: center;
+  cursor: pointer;
+}
+
+.unified-grid-row:hover {
+  background: var(--background-tertiary);
+}
+
+.unified-grid-row:last-child {
+  border-bottom: none;
+}
+
+/* Common table elements */
+.table-no-data {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.table-primary-text {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.table-secondary-text {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.table-actions button {
+  padding: 6px 12px;
+  font-size: 0.8em;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.table-action-edit {
+  background: var(--button-secondary-background);
+  color: var(--button-secondary-text);
+}
+
+.table-action-edit:hover {
+  background: var(--button-secondary-hover);
+}
+
+.table-action-delete {
+  background: #dc3545;
+  color: white;
+}
+
+.table-action-delete:hover {
+  background: #c82333;
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-draft { background: #6c757d20; color: #6c757d; }
+.status-sent { background: #17a2b820; color: #17a2b8; }
+.status-under-review { background: #ffc10720; color: #ffc107; }
+.status-accepted { background: #28a74520; color: #28a745; }
+.status-rejected { background: #dc354520; color: #dc3545; }
+.status-on-hold { background: #fd7e1420; color: #fd7e14; }
+.status-active { background: #28a74520; color: #28a745; }
+.status-inactive { background: #6c757d20; color: #6c757d; }
+
+/* Responsive behavior */
+@media (max-width: 768px) {
+  .unified-table-container {
+    border-radius: 6px;
+  }
+  
+  .unified-table th,
+  .unified-table td {
+    padding: 8px 12px;
+    font-size: 0.85em;
+  }
+  
+  .unified-grid-header,
+  .unified-grid-row {
+    padding: 8px 12px;
+    gap: 12px;
+  }
+  
+  .table-actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .table-actions button {
+    width: 100%;
+    padding: 8px 12px;
+  }
+}
+
+/* Column size presets for grid tables */
+.grid-2-cols { grid-template-columns: 1fr 120px; }
+.grid-3-cols { grid-template-columns: 2fr 1fr 120px; }
+.grid-4-cols { grid-template-columns: 2fr 1fr 1fr 120px; }
+.grid-5-cols { grid-template-columns: 2fr 1fr 1fr 1fr 120px; }
+.grid-6-cols { grid-template-columns: 2fr 1fr 1fr 1fr 1fr 120px; }
+.grid-7-cols { grid-template-columns: 1.5fr 0.8fr 1fr 1fr 1fr 1fr 120px; }
+.grid-8-cols { grid-template-columns: 1.5fr 0.8fr 1fr 0.8fr 0.8fr 1fr 1fr 120px; }
+
+/* Resumes-specific columns */
+.resumes-grid { grid-template-columns: 1.5fr 0.8fr 1fr 0.8fr 0.8fr 1fr 1fr 120px; }
+
+/* Proposals-specific columns */
+.proposals-grid { grid-template-columns: 2fr 1fr 1.5fr 1fr 1fr 1fr 1.5fr; }
+
+/* Projects-specific columns */
+.projects-grid { grid-template-columns: 2fr 1fr 1fr 120px; }
+
+/* Personnel-specific columns */
+.personnel-grid { grid-template-columns: 120px 1fr 120px; }

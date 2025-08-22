@@ -5,6 +5,7 @@ import { useToast } from '../components/Toast';
 import { api } from '../lib/api';
 import { useData } from '../context/DataContext';
 import './Proposals.css';
+import '../components/UnifiedTable.css';
 
 function Proposals() {
   const { getClients, getContacts, getProposals } = useData();
@@ -340,11 +341,11 @@ function Proposals() {
       </div>
 
       {/* Proposals List */}
-      <div className="proposals-list">
+      <div className="unified-table-container">
         {error && <div className="error-message">{error}</div>}
         
-        <div className="proposals-table">
-          <div className="table-header">
+        <div className="unified-grid-table">
+          <div className="unified-grid-header proposals-grid">
             <div>Name</div>
             <div>Status</div>
             <div>Client</div>
@@ -355,11 +356,11 @@ function Proposals() {
           </div>
 
           {filteredProposals.map(proposal => (
-            <div key={proposal.id} className="table-row">
-              <div className="proposal-name">
-                <strong>{proposal.name}</strong>
+            <div key={proposal.id} className="unified-grid-row proposals-grid">
+              <div>
+                <div className="table-primary-text">{proposal.name}</div>
                 {proposal.project_brief && (
-                  <div className="proposal-brief">{proposal.project_brief}</div>
+                  <div className="table-secondary-text">{proposal.project_brief}</div>
                 )}
               </div>
               <div>{getStatusBadge(proposal.status)}</div>
@@ -367,15 +368,15 @@ function Proposals() {
               <div>{proposal.location || '-'}</div>
               <div>{formatDate(proposal.due_date)}</div>
               <div>{formatDate(proposal.created_at)}</div>
-              <div className="actions">
+              <div className="table-actions">
                 <button 
-                  className="button-secondary-small"
+                  className="table-action-edit"
                   onClick={() => handleEditProposal(proposal)}
                 >
                   Edit
                 </button>
                 <button 
-                  className="button-danger-small"
+                  className="table-action-delete"
                   onClick={() => handleDeleteProposal(proposal.id)}
                 >
                   Delete

@@ -6,6 +6,7 @@ import { useToast } from '../components/Toast';
 import MediaPicker from '../components/MediaPicker';
 import '../App.css';
 import './Proposals.css';
+import '../components/UnifiedTable.css';
 
 function Projects() {
   const toast = useToast();
@@ -105,22 +106,22 @@ function Projects() {
         </div>
       </div>
 
-      <div className="proposals-list">
-        <div className="proposals-table">
-          <div className="table-header">
+      <div className="unified-table-container">
+        <div className="unified-grid-table">
+          <div className="unified-grid-header projects-grid">
             <div>Name</div>
             <div>Date</div>
             <div>Value</div>
             <div>Actions</div>
           </div>
           {items.map((item) => (
-            <div key={item.id} className="table-row">
-              <div className="proposal-name"><strong>{item.name}</strong></div>
+            <div key={item.id} className="unified-grid-row projects-grid">
+              <div className="table-primary-text">{item.name}</div>
               <div>{item.date || '-'}</div>
               <div>{item.contract_value ?? '-'}</div>
-              <div className="actions">
-                <button className="button-secondary-small" onClick={() => onEdit(item)}>Edit</button>
-                <button className="button-danger-small" onClick={() => onDelete(item)}>Delete</button>
+              <div className="table-actions">
+                <button className="table-action-edit" onClick={() => onEdit(item)}>Edit</button>
+                <button className="table-action-delete" onClick={() => onDelete(item)}>Delete</button>
               </div>
             </div>
           ))}

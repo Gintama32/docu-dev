@@ -1,11 +1,25 @@
-from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey, Numeric, Date, DateTime, func, JSON, LargeBinary
-from sqlalchemy.orm import relationship
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    Numeric,
+    String,
+    Text,
+    func,
+)
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
+
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     email = Column(String, unique=True, nullable=False, index=True)
     username = Column(String, unique=True, nullable=True, index=True)
@@ -13,11 +27,11 @@ class User(Base):
     hashed_password = Column(String, nullable=True)  # Null for SSO users
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
-    
+
     # SSO fields
     microsoft_id = Column(String, unique=True, nullable=True, index=True)  # Azure AD object ID
     sso_provider = Column(String, nullable=True)  # 'microsoft', 'google', etc.
-    
+
     # Profile fields
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
@@ -25,26 +39,27 @@ class User(Base):
     job_title = Column(String, nullable=True)
     phone = Column(String, nullable=True)
     avatar_url = Column(String, nullable=True)
-    
+
     # Preferences
     preferences = Column(JSON, nullable=True, default=dict)  # UI preferences, notifications, etc.
-    
+
     # Timestamps
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     last_login_at = Column(DateTime, nullable=True)
     deleted_at = Column(DateTime, nullable=True)
-    
+
     # Relationships
     sessions = relationship("UserSession", back_populates="user")
     created_proposals = relationship("ProjectProposal", back_populates="created_by")
     notes = relationship("ProposalNote", back_populates="user")
     user_profiles = relationship("UserProfile", back_populates="user")
 
+
 class UserSession(Base):
-    __tablename__ = 'user_sessions'
+    __tablename__ = "user_sessions"
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     session_token = Column(String, unique=True, nullable=False, index=True)
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=func.now())
@@ -52,44 +67,46 @@ class UserSession(Base):
     ip_address = Column(String, nullable=True)
     user_agent = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
-    
+
     user = relationship("User", back_populates="sessions")
 
+
 class ProposalNote(Base):
-    __tablename__ = 'proposal_notes'
+    __tablename__ = "proposal_notes"
     id = Column(Integer, primary_key=True)
-    proposal_id = Column(Integer, ForeignKey('project_proposals.id'), nullable=False)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    proposal_id = Column(Integer, ForeignKey("project_proposals.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     content = Column(Text, nullable=False)
-    note_type = Column(String, default='comment')  # 'comment', 'status_change', 'system'
+    note_type = Column(String, default="comment")  # 'comment', 'status_change', 'system'
     is_internal = Column(Boolean, default=True)  # Internal vs client-visible
-    
+
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime, nullable=True)
-    
+
     proposal = relationship("ProjectProposal", back_populates="notes")
     user = relationship("User", back_populates="notes")
 
+
 class ProjectProposal(Base):
-    __tablename__ = 'project_proposals'
+    __tablename__ = "project_proposals"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    context = Column(Text) # The core text for semantic search
-    source = Column(String, default='manual') # e.g., 'email', 'manual'
-    
-    # Enhanced proposal fields
-    status = Column(String, default='draft') # draft, sent, under_review, accepted, rejected, on_hold
-    location = Column(String)
-    scope = Column(Text) # Detailed scope description
-    due_date = Column(Date)
-    project_brief = Column(Text) # Brief description/summary
-    internal_notes = Column(Text) # Internal team coordination notes
+    context = Column(Text)  # The core text for semantic search
+    source = Column(String, default="manual")  # e.g., 'email', 'manual'
 
-    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True) # Can be null initially
-    contact_id = Column(Integer, ForeignKey('contacts.id'), nullable=True) # Associated contact
-    created_by_id = Column(Integer, ForeignKey('users.id'), nullable=True) # Who created this proposal
-    
+    # Enhanced proposal fields
+    status = Column(String, default="draft")  # draft, sent, under_review, accepted, rejected, on_hold
+    location = Column(String)
+    scope = Column(Text)  # Detailed scope description
+    due_date = Column(Date)
+    project_brief = Column(Text)  # Brief description/summary
+    internal_notes = Column(Text)  # Internal team coordination notes
+
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)  # Can be null initially
+    contact_id = Column(Integer, ForeignKey("contacts.id"), nullable=True)  # Associated contact
+    created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Who created this proposal
+
     client = relationship("Client")
     contact = relationship("Contact")
     created_by = relationship("User", back_populates="created_proposals")
@@ -101,8 +118,9 @@ class ProjectProposal(Base):
 
     resumes = relationship("Resume", back_populates="project_proposal")
 
+
 class Template(Base):
-    __tablename__ = 'templates'
+    __tablename__ = "templates"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
     content = Column(Text, nullable=False)
@@ -115,7 +133,7 @@ class Template(Base):
 
 
 class Media(Base):
-    __tablename__ = 'media'
+    __tablename__ = "media"
     id = Column(Integer, primary_key=True)
     media_uri = Column(String, nullable=True)  # Optional external URI (e.g., S3)
     media_type = Column(String, nullable=True)  # e.g., 'image/png'
@@ -127,11 +145,11 @@ class Media(Base):
 
 
 class UserProfile(Base):
-    __tablename__ = 'user_profiles'
+    __tablename__ = "user_profiles"
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    main_image_id = Column(Integer, ForeignKey('media.id'), nullable=True)
+    main_image_id = Column(Integer, ForeignKey("media.id"), nullable=True)
     intro = Column(Text, nullable=True)
     certificates = Column(JSON, nullable=True)  # List of certificates or structured data
 
@@ -145,13 +163,13 @@ class UserProfile(Base):
 
 
 class Project(Base):
-    __tablename__ = 'projects'
+    __tablename__ = "projects"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     date = Column(Date, nullable=True)
     contract_value = Column(Numeric(12, 2), nullable=True)
-    main_image_id = Column(Integer, ForeignKey('media.id'), nullable=True)
+    main_image_id = Column(Integer, ForeignKey("media.id"), nullable=True)
 
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
@@ -159,45 +177,53 @@ class Project(Base):
 
     main_image = relationship("Media")
 
+
 class Resume(Base):
-    __tablename__ = 'resumes'
+    __tablename__ = "resumes"
     id = Column(Integer, primary_key=True)
     alias = Column(String, nullable=True)  # User-friendly name for the resume
-    status = Column(String, default='draft', nullable=False)
+    status = Column(String, default="draft", nullable=False)
     generated_content = Column(Text)
 
-    project_proposal_id = Column(Integer, ForeignKey('project_proposals.id'), nullable=False)
+    project_proposal_id = Column(Integer, ForeignKey("project_proposals.id"), nullable=True)
     project_proposal = relationship("ProjectProposal", back_populates="resumes")
 
-    template_id = Column(Integer, ForeignKey('templates.id'), nullable=False)
+    template_id = Column(Integer, ForeignKey("templates.id"), nullable=False)
     template = relationship("Template", back_populates="resumes")
 
-    user_profile_id = Column(Integer, ForeignKey('user_profiles.id'), nullable=True)
+    user_profile_id = Column(Integer, ForeignKey("user_profiles.id"), nullable=True)
     user_profile = relationship("UserProfile", back_populates="resumes")
 
     # Relationship to ResumeExperienceDetail (ordered by display_order)
-    resume_experience_details = relationship("ResumeExperienceDetail", back_populates="resume", cascade="all, delete-orphan", order_by="ResumeExperienceDetail.display_order")
+    resume_experience_details = relationship(
+        "ResumeExperienceDetail",
+        back_populates="resume",
+        cascade="all, delete-orphan",
+        order_by="ResumeExperienceDetail.display_order",
+    )
 
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime, nullable=True)
 
+
 class Contact(Base):
-    __tablename__ = 'contacts'
+    __tablename__ = "contacts"
     id = Column(Integer, primary_key=True)
     contact_name = Column(String, nullable=False)
     email = Column(String, unique=True)
     phone = Column(String)
     last_contact_date = Column(Date)
-    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True)
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime, nullable=True)
     client = relationship("Client", back_populates="contacts", foreign_keys=[client_id])
     experiences = relationship("Experience", back_populates="contact")
 
+
 class Client(Base):
-    __tablename__ = 'clients'
+    __tablename__ = "clients"
     id = Column(Integer, primary_key=True)
     client_name = Column(String, nullable=False, unique=True)
     website = Column(String)
@@ -205,7 +231,7 @@ class Client(Base):
     main_phone = Column(String)
     last_contact_date = Column(Date)
     last_project_date = Column(Date)
-    main_contact_id = Column(Integer, ForeignKey('contacts.id'))
+    main_contact_id = Column(Integer, ForeignKey("contacts.id"))
     main_contact = relationship("Contact", foreign_keys=[main_contact_id])
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
@@ -213,8 +239,9 @@ class Client(Base):
     contacts = relationship("Contact", back_populates="client", foreign_keys=[Contact.client_id])
     experiences = relationship("Experience", back_populates="client")
 
+
 class Experience(Base):
-    __tablename__ = 'experiences'
+    __tablename__ = "experiences"
     id = Column(Integer, primary_key=True)
     project_name = Column(String, nullable=False)
     project_description = Column(Text)
@@ -223,8 +250,8 @@ class Experience(Base):
     date_completed = Column(Date)
     location = Column(String)
     tags = Column(String)
-    client_id = Column(Integer, ForeignKey('clients.id'), nullable=False)
-    contact_id = Column(Integer, ForeignKey('contacts.id'))
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=False)
+    contact_id = Column(Integer, ForeignKey("contacts.id"))
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime, nullable=True)
@@ -234,20 +261,21 @@ class Experience(Base):
     # Relationship to ResumeExperienceDetail
     resume_experience_details = relationship("ResumeExperienceDetail", back_populates="experience")
 
+
 class ResumeExperienceDetail(Base):
-    __tablename__ = 'resume_experience_details'
-    resume_id = Column(Integer, ForeignKey('resumes.id'), primary_key=True)
-    experience_id = Column(Integer, ForeignKey('experiences.id'), primary_key=True)
-    
+    __tablename__ = "resume_experience_details"
+    resume_id = Column(Integer, ForeignKey("resumes.id"), primary_key=True)
+    experience_id = Column(Integer, ForeignKey("experiences.id"), primary_key=True)
+
     # Original description from the experience
     overridden_project_description = Column(Text, nullable=True)
-    
+
     # AI-rewritten version of the experience description
     ai_rewritten_description = Column(Text, nullable=True)
-    
+
     # Flag to determine which version to use (AI or custom)
     use_ai_version = Column(Boolean, default=False, nullable=False)
-    
+
     display_order = Column(Integer, nullable=False, default=0)
 
     resume = relationship("Resume", back_populates="resume_experience_details")
@@ -256,7 +284,7 @@ class ResumeExperienceDetail(Base):
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime, nullable=True)
-    
+
     def get_display_description(self) -> str:
         """Get the appropriate description based on the use_ai_version flag."""
         if self.use_ai_version and self.ai_rewritten_description:

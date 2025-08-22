@@ -7,6 +7,7 @@ import { useToast } from '../components/Toast';
 import MediaPicker from '../components/MediaPicker';
 import '../App.css';
 import './Proposals.css';
+import '../components/UnifiedTable.css';
 
 function Personnel() {
   const { user } = useAuth();
@@ -109,15 +110,15 @@ function Personnel() {
         </div>
       </div>
 
-      <div className="proposals-list">
-        <div className="proposals-table">
-          <div className="table-header" style={{ gridTemplateColumns: '120px 1fr 1fr' }}>
+      <div className="unified-table-container">
+        <div className="unified-grid-table">
+          <div className="unified-grid-header personnel-grid">
             <div>Image</div>
             <div>Intro</div>
             <div>Actions</div>
           </div>
           {items.map((item) => (
-            <div key={item.id} className="table-row" style={{ gridTemplateColumns: '120px 1fr 1fr' }}>
+            <div key={item.id} className="unified-grid-row personnel-grid">
               <div>
                 {item.main_image_id ? (
                   <img
@@ -129,12 +130,12 @@ function Personnel() {
                   <div style={{ width: 100, height: 68, background: 'var(--background-secondary)', border: '1px solid var(--border-light)', borderRadius: 6 }} />
                 )}
               </div>
-              <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div className="table-secondary-text" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {item.intro || '-'}
               </div>
-              <div className="actions">
-                <button className="button-secondary-small" onClick={() => onEdit(item)}>Edit</button>
-                <button className="button-danger-small" onClick={() => onDelete(item)}>Delete</button>
+              <div className="table-actions">
+                <button className="table-action-edit" onClick={() => onEdit(item)}>Edit</button>
+                <button className="table-action-delete" onClick={() => onDelete(item)}>Delete</button>
               </div>
             </div>
           ))}

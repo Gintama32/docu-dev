@@ -8,19 +8,37 @@
 
 .personalize-header {
   margin-bottom: 2rem;
-  text-align: left;
 }
 
-.personalize-header h2 {
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.header-text {
+  flex: 1;
+}
+
+.header-text h2 {
   color: var(--text-primary);
   margin-bottom: 0.5rem;
   font-size: 1.5em;
+  margin-top: 0;
 }
 
-.personalize-header p {
+.header-text p {
   color: var(--text-secondary);
   margin: 0;
   font-size: 0.95em;
+}
+
+.header-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px; /* Slight adjustment to align with h2 baseline */
 }
 
 /* AI Controls Section */
@@ -307,17 +325,27 @@
   white-space: nowrap;
 }
 
-/* Reorder Section */
-.reorder-section {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-color);
+/* Header button styling */
+.header-actions button {
+  font-size: 0.9rem;
 }
 
-.reorder-section button {
-  font-size: 0.9rem;
+/* Responsive design for header */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .header-actions {
+    padding-top: 0;
+    justify-content: flex-start;
+  }
+  
+  .header-actions button {
+    align-self: flex-start;
+  }
 }
 
 .generate-resume-final-btn {

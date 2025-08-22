@@ -493,8 +493,23 @@ const PersonalizeContentTab = ({
   return (
     <div className="personalize-content-tab">
       <div className="personalize-header">
-        <h2>Personalize Experience Content</h2>
-        <p>Edit and customize your experience descriptions for this resume. Use AI to automatically tailor content to your proposal.</p>
+        <div className="header-content">
+          <div className="header-text">
+            <h2>Personalize Experience Content</h2>
+            <p>Edit and customize your experience descriptions for this resume.</p>
+          </div>
+          {editedExperiences.length > 1 && (
+            <div className="header-actions">
+              <button 
+                className="button-secondary"
+                onClick={() => setShowReorderModal(true)}
+                title="Reorder experiences for your resume"
+              >
+                📋 Reorder Experiences
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
 
@@ -505,19 +520,7 @@ const PersonalizeContentTab = ({
         </div>
       )}
 
-      {/* Reorder button at the top */}
-      {editedExperiences.length > 1 && (
-        <div className="reorder-section">
-          <button 
-            className="button-secondary"
-            onClick={() => setShowReorderModal(true)}
-            title="Reorder experiences for your resume"
-          >
-            📋 Reorder Experiences
-          </button>
-        </div>
-      )}
-
+   
       <div className="experience-list">
         {editedExperiences.map((exp) => (
           <div key={exp.experience_id} className="experience-card">

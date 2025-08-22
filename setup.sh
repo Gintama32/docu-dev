@@ -101,3 +101,4 @@ echo "3. Create a user account: cd backend && python create_user.py"
 echo "4. Start development servers: ./start_dev.sh"
 echo ""
 echo "📚 For detailed instructions, see README.md"
+

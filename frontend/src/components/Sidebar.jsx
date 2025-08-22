@@ -53,8 +53,8 @@ function Sidebar() {
         <h3>Generate</h3>
         <ul>
           <li>
-            <NavLink to="/resume" className={({ isActive }) => isActive ? 'active' : ''}>
-              Resume
+            <NavLink to="/resumes" className={({ isActive }) => isActive ? 'active' : ''}>
+              Resumes
             </NavLink>
           </li>
           <li>

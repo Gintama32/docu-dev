@@ -1,22 +1,33 @@
-from sqlalchemy.orm import Session, joinedload
 from typing import Optional
+
+from sqlalchemy.orm import Session, joinedload
+
 from . import models, schemas
 from .services.auth_service import auth_service
+
 
 def get_experience(db: Session, experience_id: int):
     return db.query(models.Experience).filter(models.Experience.id == experience_id).first()
 
+
 def get_experiences(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Experience).offset(skip).limit(limit).all()
+
 
 def search_experiences(db: Session, q: str, skip: int = 0, limit: int = 100):
     query = db.query(models.Experience)
     like = f"%{q}%"
-    return query.filter(
-        (models.Experience.project_name.ilike(like)) |
-        (models.Experience.project_description.ilike(like)) |
-        (models.Experience.tags.ilike(like))
-    ).offset(skip).limit(limit).all()
+    return (
+        query.filter(
+            (models.Experience.project_name.ilike(like))
+            | (models.Experience.project_description.ilike(like))
+            | (models.Experience.tags.ilike(like))
+        )
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
 
 def create_experience(db: Session, experience: schemas.ExperienceCreate):
     db_exp = models.Experience(**experience.dict())
@@ -24,6 +35,7 @@ def create_experience(db: Session, experience: schemas.ExperienceCreate):
     db.commit()
     db.refresh(db_exp)
     return db_exp
+
 
 def update_experience(db: Session, experience_id: int, exp_update: schemas.ExperienceCreate):
     db_exp = get_experience(db, experience_id)
@@ -36,6 +48,7 @@ def update_experience(db: Session, experience_id: int, exp_update: schemas.Exper
     db.refresh(db_exp)
     return db_exp
 
+
 def delete_experience(db: Session, experience_id: int) -> bool:
     db_exp = get_experience(db, experience_id)
     if not db_exp:
@@ -44,11 +57,14 @@ def delete_experience(db: Session, experience_id: int) -> bool:
     db.commit()
     return True
 
+
 def get_client(db: Session, client_id: int):
     return db.query(models.Client).filter(models.Client.id == client_id).first()
 
+
 def get_clients(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Client).offset(skip).limit(limit).all()
+
 
 def create_client(db: Session, client: schemas.ClientCreate):
     db_client = models.Client(**client.dict())
@@ -57,17 +73,27 @@ def create_client(db: Session, client: schemas.ClientCreate):
     db.refresh(db_client)
     return db_client
 
+
 def get_contacts(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Contact).offset(skip).limit(limit).all()
+
 
 def get_project_proposal(db: Session, proposal_id: int):
     return db.query(models.ProjectProposal).filter(models.ProjectProposal.id == proposal_id).first()
 
+
 def get_project_proposals(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.ProjectProposal).options(
-        joinedload(models.ProjectProposal.client),
-        joinedload(models.ProjectProposal.contact)
-    ).offset(skip).limit(limit).all()
+    return (
+        db.query(models.ProjectProposal)
+        .options(
+            joinedload(models.ProjectProposal.client),
+            joinedload(models.ProjectProposal.contact),
+        )
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
 
 def create_project_proposal(db: Session, proposal: schemas.ProjectProposalCreate):
     db_proposal = models.ProjectProposal(**proposal.dict())
@@ -75,6 +101,7 @@ def create_project_proposal(db: Session, proposal: schemas.ProjectProposalCreate
     db.commit()
     db.refresh(db_proposal)
     return db_proposal
+
 
 def update_project_proposal(db: Session, proposal_id: int, proposal_update: schemas.ProjectProposalUpdate):
     db_proposal = db.query(models.ProjectProposal).filter(models.ProjectProposal.id == proposal_id).first()
@@ -86,6 +113,7 @@ def update_project_proposal(db: Session, proposal_id: int, proposal_update: sche
         db.refresh(db_proposal)
     return db_proposal
 
+
 def delete_project_proposal(db: Session, proposal_id: int):
     db_proposal = db.query(models.ProjectProposal).filter(models.ProjectProposal.id == proposal_id).first()
     if db_proposal:
@@ -94,23 +122,22 @@ def delete_project_proposal(db: Session, proposal_id: int):
         return True
     return False
 
+
 def get_template_by_name(db: Session, name: str):
     return db.query(models.Template).filter(models.Template.name == name).first()
+
 
 def get_default_template(db: Session):
     """Get the default template marked with is_default=True"""
     return db.query(models.Template).filter(models.Template.is_default == True).first()
 
+
 def create_template(db: Session, template: schemas.TemplateCreate):
     # If this template is being set as default, unset any existing default
     if template.is_default:
         db.query(models.Template).update({"is_default": False})
-    
-    db_template = models.Template(
-        name=template.name, 
-        content=template.content,
-        is_default=template.is_default
-    )
+
+    db_template = models.Template(name=template.name, content=template.content, is_default=template.is_default)
     db.add(db_template)
     db.commit()
     db.refresh(db_template)
@@ -121,17 +148,18 @@ def create_template(db: Session, template: schemas.TemplateCreate):
 def get_user_profile(db: Session, profile_id: int):
     return db.query(models.UserProfile).filter(models.UserProfile.id == profile_id).first()
 
+
 def get_user_profiles(db: Session, skip: int = 0, limit: int = 100, q: str | None = None):
     query = db.query(models.UserProfile)
     if q:
         like = f"%{q}%"
-        query = query.filter(
-            (models.UserProfile.intro.ilike(like))
-        )
+        query = query.filter((models.UserProfile.intro.ilike(like)))
     return query.offset(skip).limit(limit).all()
+
 
 def get_user_profiles_for_user(db: Session, user_id: int, skip: int = 0, limit: int = 100):
     return db.query(models.UserProfile).filter(models.UserProfile.user_id == user_id).offset(skip).limit(limit).all()
+
 
 def create_user_profile(db: Session, profile: schemas.UserProfileCreate):
     db_prof = models.UserProfile(**profile.dict())
@@ -139,6 +167,7 @@ def create_user_profile(db: Session, profile: schemas.UserProfileCreate):
     db.commit()
     db.refresh(db_prof)
     return db_prof
+
 
 def update_user_profile(db: Session, profile_id: int, profile_update: schemas.UserProfileUpdate):
     db_prof = get_user_profile(db, profile_id)
@@ -150,6 +179,7 @@ def update_user_profile(db: Session, profile_id: int, profile_update: schemas.Us
     db.commit()
     db.refresh(db_prof)
     return db_prof
+
 
 def delete_user_profile(db: Session, profile_id: int) -> bool:
     db_prof = get_user_profile(db, profile_id)
@@ -164,15 +194,14 @@ def delete_user_profile(db: Session, profile_id: int) -> bool:
 def get_project(db: Session, project_id: int):
     return db.query(models.Project).filter(models.Project.id == project_id).first()
 
+
 def get_projects(db: Session, skip: int = 0, limit: int = 100, q: str | None = None):
     query = db.query(models.Project)
     if q:
         like = f"%{q}%"
-        query = query.filter(
-            (models.Project.name.ilike(like)) |
-            (models.Project.description.ilike(like))
-        )
+        query = query.filter((models.Project.name.ilike(like)) | (models.Project.description.ilike(like)))
     return query.offset(skip).limit(limit).all()
+
 
 def create_project(db: Session, project: schemas.ProjectCreate):
     db_project = models.Project(**project.dict())
@@ -180,6 +209,7 @@ def create_project(db: Session, project: schemas.ProjectCreate):
     db.commit()
     db.refresh(db_project)
     return db_project
+
 
 def create_project_from_fields(
     db: Session,
@@ -202,6 +232,7 @@ def create_project_from_fields(
     db.refresh(db_project)
     return db_project
 
+
 def update_project(db: Session, project_id: int, project_update: schemas.ProjectUpdate):
     db_project = get_project(db, project_id)
     if not db_project:
@@ -212,6 +243,7 @@ def update_project(db: Session, project_id: int, project_update: schemas.Project
     db.commit()
     db.refresh(db_project)
     return db_project
+
 
 def update_project_from_fields(
     db: Session,
@@ -241,6 +273,7 @@ def update_project_from_fields(
     db.refresh(db_project)
     return db_project
 
+
 def delete_project(db: Session, project_id: int) -> bool:
     db_project = get_project(db, project_id)
     if not db_project:
@@ -249,6 +282,7 @@ def delete_project(db: Session, project_id: int) -> bool:
     db.commit()
     return True
 
+
 def create_resume(db: Session, resume: schemas.ResumeCreate):
     db_resume = models.Resume(
         project_proposal_id=resume.project_proposal_id,
@@ -256,7 +290,7 @@ def create_resume(db: Session, resume: schemas.ResumeCreate):
         template_id=resume.template_id,
         user_profile_id=resume.user_profile_id,
         status=resume.status,
-        generated_content=resume.generated_content
+        generated_content=resume.generated_content,
     )
     db.add(db_resume)
     db.commit()
@@ -266,49 +300,51 @@ def create_resume(db: Session, resume: schemas.ResumeCreate):
         db_resume_exp_detail = models.ResumeExperienceDetail(
             resume_id=db_resume.id,
             experience_id=exp_id,
-            display_order=i  # Use index as display order
+            display_order=i,  # Use index as display order
         )
         db.add(db_resume_exp_detail)
     db.commit()
     db.refresh(db_resume)
     return db_resume
 
+
 def get_resumes_by_proposal(db: Session, proposal_id: int):
     return db.query(models.Resume).filter(models.Resume.project_proposal_id == proposal_id).all()
+
 
 def update_resume(db: Session, resume_id: int, resume_update: schemas.ResumeUpdate):
     db_resume = db.query(models.Resume).filter(models.Resume.id == resume_id).first()
     if db_resume:
         update_data = resume_update.dict(exclude_unset=True)
-        
+
         # Handle experience_ids separately
-        experience_ids = update_data.pop('experience_ids', None)
+        experience_ids = update_data.pop("experience_ids", None)
         # Allow updating user_profile_id
-        user_profile_id = update_data.get('user_profile_id', None)
-        
+        update_data.get("user_profile_id", None)
+
         # Update other fields
         for key, value in update_data.items():
             setattr(db_resume, key, value)
-        
+
         # Update experiences if provided
         if experience_ids is not None:
             # Get existing experience relationships to preserve custom data
             existing_details = {
-                red.experience_id: red 
-                for red in db.query(models.ResumeExperienceDetail).filter(
-                    models.ResumeExperienceDetail.resume_id == resume_id
-                ).all()
+                red.experience_id: red
+                for red in db.query(models.ResumeExperienceDetail)
+                .filter(models.ResumeExperienceDetail.resume_id == resume_id)
+                .all()
             }
-            
+
             # Remove all existing relationships
             db.query(models.ResumeExperienceDetail).filter(
                 models.ResumeExperienceDetail.resume_id == resume_id
             ).delete()
-            
+
             # Add experience relationships, preserving custom data where it exists
             for i, exp_id in enumerate(experience_ids):
                 existing = existing_details.get(exp_id)
-                
+
                 if existing:
                     # Preserve existing custom data but update display_order based on new position
                     db_resume_exp_detail = models.ResumeExperienceDetail(
@@ -317,22 +353,23 @@ def update_resume(db: Session, resume_id: int, resume_update: schemas.ResumeUpda
                         overridden_project_description=existing.overridden_project_description,
                         ai_rewritten_description=existing.ai_rewritten_description,
                         use_ai_version=existing.use_ai_version,
-                        display_order=i  # Use index as display order
+                        display_order=i,  # Use index as display order
                     )
                 else:
                     # Create new relationship with proper display order
                     db_resume_exp_detail = models.ResumeExperienceDetail(
                         resume_id=resume_id,
                         experience_id=exp_id,
-                        display_order=i  # Use index as display order
+                        display_order=i,  # Use index as display order
                     )
-                
+
                 db.add(db_resume_exp_detail)
-        
+
         db.add(db_resume)
         db.commit()
         db.refresh(db_resume)
     return db_resume
+
 
 def delete_resume(db: Session, resume_id: int):
     db_resume = db.query(models.Resume).filter(models.Resume.id == resume_id).first()
@@ -340,6 +377,7 @@ def delete_resume(db: Session, resume_id: int):
         db.delete(db_resume)
         db.commit()
     return db_resume
+
 
 def get_resume(db: Session, resume_id: int):
     return db.query(models.Resume).filter(models.Resume.id == resume_id).first()
@@ -378,8 +416,10 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
 def list_media(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Media).order_by(models.Media.created_at.desc()).offset(skip).limit(limit).all()
 
+
 def get_media(db: Session, media_id: int):
     return db.query(models.Media).filter(models.Media.id == media_id).first()
+
 
 def create_media(
     db: Session,
@@ -399,6 +439,7 @@ def create_media(
     db.commit()
     db.refresh(media)
     return media
+
 
 def delete_media(db: Session, media_id: int) -> bool:
     media = db.query(models.Media).filter(models.Media.id == media_id).first()

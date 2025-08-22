@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Response
-from sqlalchemy.orm import Session
-from typing import List
 import os
 import shutil
+from typing import List
+
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
+from sqlalchemy.orm import Session
 
 from .. import crud, schemas
 from ..database import get_db
@@ -30,7 +31,7 @@ async def upload_media(file: UploadFile = File(...), db: Session = Depends(get_d
 
     original_name = os.path.splitext(os.path.basename(file.filename))[0]
     ext = os.path.splitext(file.filename)[1]
-    safe_name = original_name.replace('/', '_').replace('\\', '_').replace('..', '_') or 'file'
+    safe_name = original_name.replace("/", "_").replace("\\", "_").replace("..", "_") or "file"
     candidate = f"{safe_name}{ext}"
     file_path = os.path.join(upload_dir, candidate)
     counter = 1
@@ -39,10 +40,10 @@ async def upload_media(file: UploadFile = File(...), db: Session = Depends(get_d
         file_path = os.path.join(upload_dir, candidate)
         counter += 1
 
-    with open(file_path, 'wb') as out:
+    with open(file_path, "wb") as out:
         shutil.copyfileobj(file.file, out)
 
-    relative = os.path.relpath(file_path, static_dir).replace(os.sep, '/')
+    relative = os.path.relpath(file_path, static_dir).replace(os.sep, "/")
     media_uri = f"/static/{relative}"
 
     media = crud.create_media(
@@ -70,14 +71,18 @@ def get_media_raw(media_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Media not found")
     # If binary stored, stream it; else attempt to serve from filesystem path
     if media.image_content:
-        return Response(content=media.image_content, media_type=media.media_type or 'application/octet-stream')
-    if media.media_uri and media.media_uri.startswith('/static/'):
+        return Response(
+            content=media.image_content,
+            media_type=media.media_type or "application/octet-stream",
+        )
+    if media.media_uri and media.media_uri.startswith("/static/"):
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         static_dir = os.path.join(base_dir, "static")
-        file_path = os.path.join(static_dir, media.media_uri[len('/static/'):])
+        file_path = os.path.join(static_dir, media.media_uri[len("/static/"):])
         if os.path.exists(file_path):
-            with open(file_path, 'rb') as f:
-                return Response(content=f.read(), media_type=media.media_type or 'application/octet-stream')
+            with open(file_path, "rb") as f:
+                return Response(
+                    content=f.read(),
+                    media_type=media.media_type or "application/octet-stream",
+                )
     raise HTTPException(status_code=404, detail="Media content missing")
-
-

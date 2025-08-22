@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Sidebar from './components/Sidebar';
-import Resume from './pages/Resume';
+import Resumes from './pages/Resumes';
 import Experience from './pages/Experience';
 import ProjectSheet from './pages/ProjectSheet';
 import Projects from './pages/Projects';
@@ -32,7 +32,8 @@ function AppContent() {
       <main className="content">
         <Routes>
           <Route path="/proposals" element={<Proposals />} />
-          <Route path="/resume" element={<Resume />} />
+          <Route path="/resumes" element={<Resumes />} />
+          <Route path="/resumes/:resumeId" element={<Resumes />} />
           <Route path="/experience" element={<Experience />} />
           <Route path="/project-sheet" element={<ProjectSheet />} />
           <Route path="/projects" element={<Projects />} />

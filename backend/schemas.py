@@ -1,6 +1,8 @@
-from pydantic import BaseModel, EmailStr, field_validator, Field
-from typing import List, Optional, Dict, Any, Union
 from datetime import date, datetime
+from typing import Any, Dict, List, Optional, Union
+
+from pydantic import BaseModel, EmailStr, field_validator
+
 
 # User schemas
 class UserBase(BaseModel):
@@ -14,10 +16,12 @@ class UserBase(BaseModel):
     phone: Optional[str] = None
     is_active: bool = True
 
+
 class UserCreate(UserBase):
     password: Optional[str] = None  # Optional for SSO users
     microsoft_id: Optional[str] = None
     sso_provider: Optional[str] = None
+
 
 class UserUpdate(BaseModel):
     username: Optional[str] = None
@@ -30,6 +34,7 @@ class UserUpdate(BaseModel):
     avatar_url: Optional[str] = None
     preferences: Optional[Dict[str, Any]] = None
     is_active: Optional[bool] = None
+
 
 class User(UserBase):
     id: int
@@ -44,15 +49,18 @@ class User(UserBase):
     class Config:
         from_attributes = True
 
+
 # Authentication schemas
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
+
 class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: User
+
 
 class MicrosoftSSORequest(BaseModel):
     access_token: str
@@ -62,14 +70,17 @@ class MicrosoftSSORequest(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
 
+
 # Proposal Note schemas
 class ProposalNoteBase(BaseModel):
     content: str
     note_type: str = "comment"
     is_internal: bool = True
 
+
 class ProposalNoteCreate(ProposalNoteBase):
     proposal_id: int
+
 
 class ProposalNote(ProposalNoteBase):
     id: int
@@ -82,12 +93,13 @@ class ProposalNote(ProposalNoteBase):
     class Config:
         from_attributes = True
 
+
 # Base schemas
 class ProjectProposalBase(BaseModel):
     name: str
     context: Optional[str] = None
-    source: Optional[str] = 'manual'
-    status: Optional[str] = 'draft'
+    source: Optional[str] = "manual"
+    status: Optional[str] = "draft"
     location: Optional[str] = None
     scope: Optional[str] = None
     due_date: Optional[date] = None
@@ -96,8 +108,10 @@ class ProjectProposalBase(BaseModel):
     client_id: Optional[int] = None
     contact_id: Optional[int] = None
 
+
 class ProjectProposalCreate(ProjectProposalBase):
     pass
+
 
 class ProjectProposalUpdate(BaseModel):
     name: Optional[str] = None
@@ -112,19 +126,22 @@ class ProjectProposalUpdate(BaseModel):
     client_id: Optional[int] = None
     contact_id: Optional[int] = None
 
+
 class ClientSummary(BaseModel):
     id: int
     client_name: str
-    
+
     class Config:
         from_attributes = True
+
 
 class ContactSummary(BaseModel):
     id: int
     contact_name: str
-    
+
     class Config:
         from_attributes = True
+
 
 class ProjectProposal(ProjectProposalBase):
     id: int
@@ -136,12 +153,15 @@ class ProjectProposal(ProjectProposalBase):
     class Config:
         from_attributes = True
 
+
 class TemplateBase(BaseModel):
     name: str
     content: str
 
+
 class TemplateCreate(TemplateBase):
     is_default: Optional[bool] = False
+
 
 class Template(TemplateBase):
     id: int
@@ -152,6 +172,7 @@ class Template(TemplateBase):
     class Config:
         from_attributes = True
 
+
 class ClientBase(BaseModel):
     client_name: str
     website: Optional[str] = None
@@ -161,8 +182,10 @@ class ClientBase(BaseModel):
     last_project_date: Optional[date] = None
     main_contact_id: Optional[int] = None
 
+
 class ClientCreate(ClientBase):
     pass
+
 
 class Client(ClientBase):
     id: int
@@ -172,6 +195,7 @@ class Client(ClientBase):
     class Config:
         from_attributes = True
 
+
 class ContactBase(BaseModel):
     contact_name: str
     email: Optional[str] = None
@@ -179,8 +203,10 @@ class ContactBase(BaseModel):
     last_contact_date: Optional[date] = None
     client_id: Optional[int] = None
 
+
 class ContactCreate(ContactBase):
     pass
+
 
 class Contact(ContactBase):
     id: int
@@ -189,6 +215,7 @@ class Contact(ContactBase):
 
     class Config:
         from_attributes = True
+
 
 class ExperienceBase(BaseModel):
     project_name: str
@@ -201,8 +228,10 @@ class ExperienceBase(BaseModel):
     client_id: int
     contact_id: Optional[int] = None
 
+
 class ExperienceCreate(ExperienceBase):
     pass
+
 
 class Experience(ExperienceBase):
     id: int
@@ -212,6 +241,7 @@ class Experience(ExperienceBase):
     class Config:
         from_attributes = True
 
+
 class ResumeExperienceDetailBase(BaseModel):
     experience_id: int
     overridden_project_description: Optional[str] = None
@@ -219,8 +249,10 @@ class ResumeExperienceDetailBase(BaseModel):
     use_ai_version: bool = False
     display_order: Optional[int] = 0
 
+
 class ResumeExperienceDetailCreate(ResumeExperienceDetailBase):
     pass
+
 
 class ResumeExperienceDetail(ResumeExperienceDetailBase):
     resume_id: int
@@ -230,16 +262,19 @@ class ResumeExperienceDetail(ResumeExperienceDetailBase):
     class Config:
         from_attributes = True
 
+
 class ResumeBase(BaseModel):
-    project_proposal_id: int
+    project_proposal_id: Optional[int] = None  # Made optional
     alias: Optional[str] = None  # User-friendly name for the resume
-    template_id: Optional[int] = None # Made optional
+    template_id: Optional[int] = None  # Made optional
     user_profile_id: Optional[int] = None
-    status: Optional[str] = 'draft' # Made optional
-    generated_content: Optional[str] = None # Made optional
+    status: Optional[str] = "draft"  # Made optional
+    generated_content: Optional[str] = None  # Made optional
+
 
 class ResumeCreate(ResumeBase):
-    experience_ids: List[int] = [] # List of experience IDs to link
+    experience_ids: List[int] = []  # List of experience IDs to link
+
 
 class ResumeUpdate(BaseModel):
     alias: Optional[str] = None
@@ -249,11 +284,12 @@ class ResumeUpdate(BaseModel):
     user_profile_id: Optional[int] = None
     template_id: Optional[int] = None
 
+
 class Resume(ResumeBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    generated_content: Optional[str] = None # Ensure generated_content is included in the response
+    generated_content: Optional[str] = None  # Ensure generated_content is included in the response
 
     class Config:
         from_attributes = True
@@ -265,9 +301,11 @@ class MediaBase(BaseModel):
     media_type: Optional[str] = None
     size_bytes: Optional[int] = None
 
+
 class MediaCreate(MediaBase):
     # Inline binary not accepted via this schema for now
     pass
+
 
 class Media(MediaBase):
     id: int
@@ -285,13 +323,16 @@ class UserProfileBase(BaseModel):
     intro: Optional[str] = None
     certificates: Optional[List[Union[str, Dict[str, Any]]]] = None
 
+
 class UserProfileCreate(UserProfileBase):
     pass
+
 
 class UserProfileUpdate(BaseModel):
     main_image_id: Optional[int] = None
     intro: Optional[str] = None
     certificates: Optional[List[Union[str, Dict[str, Any]]]] = None
+
 
 class UserProfile(UserProfileBase):
     id: int
@@ -309,13 +350,14 @@ class ProjectBase(BaseModel):
     contract_value: Optional[float] = None
     main_image_id: Optional[int] = None
 
+
 class ProjectCreate(ProjectBase):
     date: Any = None  # Accept any type, convert in validator
-    
-    @field_validator('date', mode='before')
+
+    @field_validator("date", mode="before")
     @classmethod
     def parse_date_string(cls, v):
-        if v is None or v == '':
+        if v is None or v == "":
             return None
         if isinstance(v, str):
             try:
@@ -327,17 +369,18 @@ class ProjectCreate(ProjectBase):
         # For any other type, try to convert to None
         return None
 
+
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     date: Any = None  # Accept any type, convert in validator
     contract_value: Optional[float] = None
     main_image_id: Optional[int] = None
-    
-    @field_validator('date', mode='before')
+
+    @field_validator("date", mode="before")
     @classmethod
     def parse_date_string(cls, v):
-        if v is None or v == '':
+        if v is None or v == "":
             return None
         if isinstance(v, str):
             try:
@@ -348,6 +391,7 @@ class ProjectUpdate(BaseModel):
             return v
         # For any other type, try to convert to None
         return None
+
 
 class Project(ProjectBase):
     id: int
@@ -357,11 +401,11 @@ class Project(ProjectBase):
 
     class Config:
         from_attributes = True
-    
-    @field_validator('date', mode='before')
+
+    @field_validator("date", mode="before")
     @classmethod
     def parse_date_for_response(cls, v):
-        if v is None or v == '':
+        if v is None or v == "":
             return None
         if isinstance(v, str):
             try:

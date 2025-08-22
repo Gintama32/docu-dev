@@ -59,7 +59,12 @@ function ResumeListTab({
   return (
     <div className="resume-list-tab">
       <div className="resume-list-header">
-        <h3>Resumes for {selectedProposal?.name}</h3>
+        <h3>
+          {selectedProposal 
+            ? `Resumes for ${selectedProposal.name}` 
+            : 'All Resumes'
+          }
+        </h3>
         <button 
           className="button-primary" 
           onClick={() => setShowCreateResumeModal(true)}
@@ -71,7 +76,12 @@ function ResumeListTab({
       {resumes.length === 0 ? (
         <div className="empty-state">
           <h4>No resumes created yet</h4>
-          <p>Create your first resume for this proposal to get started.</p>
+          <p>
+            {selectedProposal 
+              ? 'Create your first resume for this proposal to get started.'
+              : 'Create your first resume to get started.'
+            }
+          </p>
           <button 
             className="button-primary" 
             onClick={() => setShowCreateResumeModal(true)}

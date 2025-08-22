@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from .. import crud, schemas
@@ -12,6 +13,7 @@ router = APIRouter(
     dependencies=[Depends(get_current_active_user)],
 )
 
+
 @router.get("/user-profiles", response_model=List[schemas.UserProfile])
 def list_user_profiles(
     q: Optional[str] = None,
@@ -19,22 +21,29 @@ def list_user_profiles(
     limit: int = 100,
     only_mine: bool = True,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_active_user)
+    current_user=Depends(get_current_active_user),
 ):
     if only_mine and current_user:
         return crud.get_user_profiles_for_user(db, user_id=current_user.id, skip=skip, limit=limit)
     return crud.get_user_profiles(db, skip=skip, limit=limit, q=q)
 
+
 @router.post("/user-profiles", response_model=schemas.UserProfile)
 def create_user_profile(profile: schemas.UserProfileCreate, db: Session = Depends(get_db)):
     return crud.create_user_profile(db, profile)
 
+
 @router.put("/user-profiles/{profile_id}", response_model=schemas.UserProfile)
-def update_user_profile(profile_id: int, profile_update: schemas.UserProfileUpdate, db: Session = Depends(get_db)):
+def update_user_profile(
+    profile_id: int,
+    profile_update: schemas.UserProfileUpdate,
+    db: Session = Depends(get_db),
+):
     updated = crud.update_user_profile(db, profile_id, profile_update)
     if not updated:
         raise HTTPException(status_code=404, detail="User profile not found")
     return updated
+
 
 @router.delete("/user-profiles/{profile_id}")
 def delete_user_profile(profile_id: int, db: Session = Depends(get_db)):

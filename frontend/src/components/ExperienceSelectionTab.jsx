@@ -1,10 +1,14 @@
 import React, { useState, useMemo } from 'react';
+import './UnifiedTable.css';
 
 function ExperienceSelectionTab({
   allExperiences,
   selectedExperiences,
   handleExperienceSelection,
   clients,
+  userProfiles = [],
+  selectedUserProfileId,
+  onUserProfileChange,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClient, setSelectedClient] = useState('');
@@ -80,6 +84,51 @@ function ExperienceSelectionTab({
           </div>
         </div>
       </div>
+
+      {/* User Profile Selection */}
+      {userProfiles && userProfiles.length > 0 && (
+        <div className="profile-selection-section">
+          <div className="profile-selection-header">
+            <h4>Resume Profile</h4>
+            <p>Select which profile to use for this resume. This affects personal information and intro content.</p>
+          </div>
+          <div className="profile-selection-control">
+            <select
+              value={selectedUserProfileId || ''}
+              onChange={(e) => onUserProfileChange?.(e.target.value)}
+              className="profile-select"
+            >
+              <option value="">Default Profile</option>
+              {userProfiles.map(profile => (
+                <option key={profile.id} value={profile.id}>
+                  Profile #{profile.id}
+                  {profile.intro && ` - ${profile.intro.substring(0, 50)}${profile.intro.length > 50 ? '...' : ''}`}
+                </option>
+              ))}
+            </select>
+            {selectedUserProfileId && (
+              <div className="selected-profile-info">
+                {(() => {
+                  const profile = userProfiles.find(p => p.id === parseInt(selectedUserProfileId));
+                  return profile ? (
+                    <div className="profile-preview">
+                      <strong>Selected: Profile #{profile.id}</strong>
+                      {profile.intro && <div className="profile-intro">{profile.intro}</div>}
+                      {profile.certificates && profile.certificates.length > 0 && (
+                        <div className="profile-certs">
+                          Certificates: {Array.isArray(profile.certificates) 
+                            ? profile.certificates.join(', ') 
+                            : profile.certificates}
+                        </div>
+                      )}
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Search and Filter Controls */}
       <div className="filter-controls">
@@ -223,8 +272,8 @@ function ExperienceSelectionTab({
           ))}
         </div>
       ) : (
-        <div className="experience-table-container">
-          <table className="experience-table">
+        <div className="unified-table-container">
+          <table className="unified-table">
             <thead>
               <tr>
                 <th className="checkbox-col">Select</th>
