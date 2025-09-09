@@ -35,8 +35,7 @@ from .services.template_service import template_service
 load_dotenv()
 
 
-# Create database tables
-models.Base.metadata.create_all(bind=engine)
+# Database tables are created via Alembic migrations
 
 
 # Configuration management

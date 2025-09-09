@@ -29,6 +29,9 @@ RUN pip install --no-cache-dir -r backend/requirements.txt
 # Copy source
 COPY backend/ ./backend/
 
+# Make start script executable
+RUN chmod +x ./backend/start.sh
+
 # Non-root user (optional)
 RUN useradd -ms /bin/bash appuser
 USER appuser
@@ -40,4 +43,5 @@ ENV ENVIRONMENT=production \
     HOST=0.0.0.0 \
     PORT=8001
 
-CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8001"]
+# Use startup script
+CMD ["./backend/start.sh"]
