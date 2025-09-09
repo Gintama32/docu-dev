@@ -220,9 +220,16 @@ def read_root():
     }
 
 
+# Lightweight ping endpoint for Render health checks
+@app.get("/ping")
+async def ping():
+    """Lightweight health check for Render - no database connection"""
+    return {"status": "ok"}
+
+
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
-    """Health check endpoint with database connectivity check"""
+    """Detailed health check endpoint with database connectivity check"""
     try:
         # Test database connection
         from sqlalchemy import text

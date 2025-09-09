@@ -5,7 +5,7 @@ services:
     dockerfilePath: backend/Dockerfile
     plan: free
     autoDeploy: true
-    healthCheckPath: /health
+    healthCheckPath: /ping
   - type: web
     name: documaker-frontend
     env: static
