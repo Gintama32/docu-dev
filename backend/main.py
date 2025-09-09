@@ -236,6 +236,8 @@ def health_check(db: Session = Depends(get_db)):
         "database": db_status,
         "environment": settings.environment,
         "version": "1.0.0",
+        "cors_origins": settings.cors_origins,  # Temporary for debugging
+        "debug_mode": settings.debug,  # Temporary for debugging
     }
 
 
