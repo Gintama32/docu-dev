@@ -10,25 +10,13 @@ services:
       name: uploads
       mountPath: /app/backend/static/uploads
       sizeGB: 1
+    envVarGroups:
+      - staging
     envVars:
-      - key: ENVIRONMENT
-        value: production
-      - key: LOG_LEVEL
-        value: INFO
-      - key: ALLOWED_HOSTS
-        value: "*"
-      - key: CORS_ORIGINS
-        value: "*"
       - key: DATABASE_URL
         fromDatabase:
           name: documaker-db
           property: connectionString
-      - key: SECRET_KEY
-        sync: false
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: OPENROUTER_API_KEY
-        sync: false
 
   - type: web
     name: documaker-frontend
@@ -36,12 +24,8 @@ services:
     buildCommand: npm ci --prefix frontend && npm run build --prefix frontend
     staticPublishPath: frontend/dist
     autoDeploy: true
-    envVars:
-      - key: VITE_API_BASE
-        fromService:
-          name: documaker-backend
-          type: web
-          property: url
+    envVarGroups:
+      - staging
 
 databases:
   - name: documaker-db
