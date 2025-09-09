@@ -5,13 +5,6 @@ FROM python:3.11-slim AS base
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-# System dependencies for Playwright
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      curl \
-      ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
-
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
@@ -20,6 +13,9 @@ WORKDIR /app
 # Install Python deps with uv
 COPY backend/requirements.txt ./backend/requirements.txt
 RUN uv pip install --system --no-cache -r backend/requirements.txt
+
+# Install Playwright system dependencies as root
+RUN python -m playwright install-deps chromium
 
 # Copy source
 COPY backend/ ./backend/
@@ -31,8 +27,8 @@ RUN chmod +x ./backend/start.sh
 RUN useradd -ms /bin/bash appuser
 USER appuser
 
-# Install Playwright browsers as the appuser (after switching users)
-RUN python -m playwright install --with-deps chromium
+# Install Playwright browsers as the appuser (no --with-deps needed now)
+RUN python -m playwright install chromium
 
 EXPOSE 8001
 
