@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useData } from '../context/DataContext';
+import { useToast } from '../components/Toast';
 import { api } from '../lib/api';
 import Modal from '../components/Modal';
 import Confirm from '../components/Confirm';
@@ -9,17 +11,13 @@ import ExperienceSelectionTab from '../components/ExperienceSelectionTab';
 import PersonalizeContentTab from '../components/PersonalizeContentTab';
 import ResumeEditorTab from '../components/ResumeEditorTab';
 import '../components/UnifiedTable.css';
-// Note: useToast should be implemented or imported from the right context
 
 function Resumes() {
   const { user, loading: authLoading } = useAuth();
+  const { getProfiles, getExperiences, getClients, getProposals } = useData();
   const navigate = useNavigate();
   const { resumeId } = useParams();
-  
-  // Simple toast implementation - you might want to use a proper toast library
-  const toast = (message) => {
-    alert(message); // Replace with proper toast implementation
-  };
+  const toast = useToast();
   
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,8 +29,7 @@ function Resumes() {
   const [editedResumeContent, setEditedResumeContent] = useState('');
   
   // Filters
-  const [statusFilter, setStatusFilter] = useState('');
-  const [proposalFilter, setProposalFilter] = useState('');
+  const [userProfileFilter, setUserProfileFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   
   // Modal states
@@ -74,7 +71,7 @@ function Resumes() {
       } else {
         // Resume not found, redirect to list
         navigate('/resumes', { replace: true });
-        toast('Resume not found');
+        toast.error('Resume not found');
       }
     } else if (!resumeId && selectedResume) {
       // URL changed to list view, clear selection
@@ -97,7 +94,7 @@ function Resumes() {
       setEditedResumeContent(fullResumeData.generated_content || '');
     } catch (err) {
       console.error('Error fetching resume details:', err);
-      toast('Failed to load resume details: ' + err.message);
+      toast.error('Failed to load resume details: ' + err.message);
     }
   };
 
@@ -119,38 +116,24 @@ function Resumes() {
 
   const fetchDropdownData = async () => {
     try {
-      const [proposalsRes, templatesRes, profilesRes, experiencesRes, clientsRes] = await Promise.all([
-        api.request('/api/proposals?limit=1000'),
+      const [proposalsData, templatesRes, profilesData, experiencesData, clientsData] = await Promise.all([
+        getProposals(),
         api.request('/api/templates'),
-        api.request('/api/user-profiles?only_mine=true'),
-        api.request('/api/experiences'),
-        api.request('/api/clients')
+        getProfiles({ only_mine: true }),
+        getExperiences(),
+        getClients()
       ]);
 
-      if (proposalsRes.ok) {
-        const proposalsData = await proposalsRes.json();
-        setProposals(proposalsData);
-      }
+      setProposals(proposalsData || []);
 
       if (templatesRes.ok) {
         const templatesData = await templatesRes.json();
         setTemplates(templatesData);
       }
 
-      if (profilesRes.ok) {
-        const profilesData = await profilesRes.json();
-        setUserProfiles(profilesData);
-      }
-
-      if (experiencesRes.ok) {
-        const experiencesData = await experiencesRes.json();
-        setExperiences(experiencesData);
-      }
-
-      if (clientsRes.ok) {
-        const clientsData = await clientsRes.json();
-        setClients(clientsData);
-      }
+      setUserProfiles(profilesData || []);
+      setExperiences(experiencesData || []);
+      setClients(clientsData || []);
     } catch (err) {
       console.error('Error fetching dropdown data:', err);
     }
@@ -168,10 +151,13 @@ function Resumes() {
         experience_ids: newResumeData.experience_ids
       };
 
-      const response = await api.json('/api/resumes', 'POST', createData);
+      const response = await api.json('/api/resumes', {
+        method: 'POST',
+        body: JSON.stringify(createData)
+      });
       
       if (response.response.ok) {
-        toast('Resume created successfully!');
+        toast.success('Resume created successfully!');
         const newResume = response.data;
         fetchResumes();
         setShowCreateModal(false);
@@ -190,7 +176,7 @@ function Resumes() {
       }
     } catch (err) {
       console.error('Error creating resume:', err);
-      toast('Failed to create resume: ' + err.message);
+      toast.error('Failed to create resume: ' + err.message);
     }
   };
 
@@ -199,14 +185,14 @@ function Resumes() {
       const response = await api.request(`/api/resumes/${resumeId}`, 'DELETE');
       
       if (response.ok) {
-        toast('Resume deleted successfully!');
+        toast.success('Resume deleted successfully!');
         fetchResumes();
       } else {
         throw new Error('Failed to delete resume');
       }
     } catch (err) {
       console.error('Error deleting resume:', err);
-      toast('Failed to delete resume: ' + err.message);
+      toast.error('Failed to delete resume: ' + err.message);
     }
     setConfirmDeleteId(null);
   };
@@ -228,7 +214,7 @@ function Resumes() {
       setEditedResumeContent(fullResumeData.generated_content || '');
     } catch (err) {
       console.error('Error fetching resume details:', err);
-      toast('Failed to load resume details: ' + err.message);
+      toast.error('Failed to load resume details: ' + err.message);
     }
   }, [navigate]);
 
@@ -251,38 +237,65 @@ function Resumes() {
       }
     } catch (err) {
       console.error('Error generating PDF:', err);
-      toast('Failed to generate PDF: ' + err.message);
+      toast.error('Failed to generate PDF: ' + err.message);
     }
   };
 
   // Filter resumes based on current filters
   const filteredResumes = resumes.filter(resume => {
-    const matchesStatus = !statusFilter || resume.status === statusFilter;
-    const matchesProposal = !proposalFilter || resume.project_proposal_id === parseInt(proposalFilter);
+    const matchesUserProfile = !userProfileFilter || 
+      (userProfileFilter === '0' && !resume.user_profile_id) ||
+      (userProfileFilter !== '0' && resume.user_profile_id === parseInt(userProfileFilter));
     const matchesSearch = !searchQuery || 
-      (resume.alias && resume.alias.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (resume.proposal_name && resume.proposal_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (resume.client_name && resume.client_name.toLowerCase().includes(searchQuery.toLowerCase()));
+      (resume.alias && resume.alias.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    return matchesStatus && matchesProposal && matchesSearch;
+    return matchesUserProfile && matchesSearch;
   });
 
   // Handler functions for resume editing (must be before early returns)
   const handleExperienceSelection = useCallback(async (experienceId) => {
+    if (!selectedResume) return;
+    
     try {
+      // Get current experience IDs
+      const currentExperienceIds = selectedResume.resume_experience_details?.map(red => red.experience_id) || [];
+      
       // Toggle experience in resume
-      const isSelected = selectedResume?.resume_experience_details?.some(red => red.experience_id === experienceId);
+      const isSelected = currentExperienceIds.includes(experienceId);
+      let newExperienceIds;
       
       if (isSelected) {
         // Remove experience from resume
-        // TODO: Implement remove experience API call
+        newExperienceIds = currentExperienceIds.filter(id => id !== experienceId);
       } else {
         // Add experience to resume
-        // TODO: Implement add experience API call
+        newExperienceIds = [...currentExperienceIds, experienceId];
+      }
+      
+      // Update resume with new experience list
+      const updateResponse = await api.request(`/api/resumes/${selectedResume.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          experience_ids: newExperienceIds
+        })
+      });
+      
+      if (updateResponse.ok) {
+        // Fetch the updated resume with full details
+        const getResponse = await api.request(`/api/resumes/${selectedResume.id}`);
+        if (getResponse.ok) {
+          const updatedResume = await getResponse.json();
+          setSelectedResume(updatedResume);
+          toast.success(isSelected ? 'Experience removed from resume' : 'Experience added to resume');
+        } else {
+          throw new Error('Failed to fetch updated resume');
+        }
+      } else {
+        throw new Error('Failed to update resume');
       }
     } catch (err) {
       console.error('Error toggling experience:', err);
-      toast('Failed to update experience selection');
+      toast.error('Failed to update experience selection');
     }
   }, [selectedResume]);
 
@@ -299,14 +312,14 @@ function Resumes() {
         const result = await response.json();
         if (result.generated_content) {
           setEditedResumeContent(result.generated_content);
-          toast('Resume regenerated successfully!');
+          toast.success('Resume regenerated successfully!');
         }
       } else {
         throw new Error('Failed to regenerate resume');
       }
     } catch (err) {
       console.error('Error regenerating resume:', err);
-      toast('Failed to regenerate resume: ' + err.message);
+      toast.error('Failed to regenerate resume: ' + err.message);
     }
   }, [selectedResume]);
 
@@ -323,7 +336,7 @@ function Resumes() {
       });
       
       if (response.ok) {
-        toast('Resume saved successfully!');
+        toast.success('Resume saved successfully!');
         // Instead of calling handleEditResume, just refresh the data
         const refreshResponse = await api.request(`/api/resumes/${selectedResume.id}`);
         if (refreshResponse.ok) {
@@ -336,7 +349,7 @@ function Resumes() {
       }
     } catch (err) {
       console.error('Error saving resume:', err);
-      toast('Failed to save resume: ' + err.message);
+      toast.error('Failed to save resume: ' + err.message);
     }
   }, [selectedResume, editedResumeContent]);
 
@@ -358,13 +371,13 @@ function Resumes() {
           const refreshedData = await refreshResponse.json();
           setSelectedResume(refreshedData);
         }
-        toast('Resume profile updated successfully!');
+        toast.success('Resume profile updated successfully!');
       } else {
         throw new Error('Failed to update resume profile');
       }
     } catch (err) {
       console.error('Error updating resume profile:', err);
-      toast('Failed to update resume profile: ' + err.message);
+      toast.error('Failed to update resume profile: ' + err.message);
     }
   }, [selectedResume]);
 
@@ -516,29 +529,16 @@ function Resumes() {
       <div className="filters-section">
         <div className="filters-row">
           <div className="filter-group">
-            <label>Status:</label>
+            <label>User Profile:</label>
             <select 
-              value={statusFilter} 
-              onChange={(e) => setStatusFilter(e.target.value)}
+              value={userProfileFilter} 
+              onChange={(e) => setUserProfileFilter(e.target.value)}
             >
-              <option value="">All Statuses</option>
-              <option value="draft">Draft</option>
-              <option value="final">Final</option>
-              <option value="sent">Sent</option>
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label>Proposal:</label>
-            <select 
-              value={proposalFilter} 
-              onChange={(e) => setProposalFilter(e.target.value)}
-            >
-              <option value="">All Proposals</option>
-              <option value="0">No Proposal</option>
-              {proposals.map(proposal => (
-                <option key={proposal.id} value={proposal.id}>
-                  {proposal.name}
+              <option value="">All Profiles</option>
+              <option value="0">Default Profile</option>
+              {userProfiles.map(profile => (
+                <option key={profile.id} value={profile.id}>
+                  {profile.full_name || profile.first_name + ' ' + profile.last_name || `Profile #${profile.id}`}
                 </option>
               ))}
             </select>
@@ -548,7 +548,7 @@ function Resumes() {
             <label>Search:</label>
             <input
               type="text"
-              placeholder="Search by name, proposal, or client..."
+              placeholder="Search by name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -557,8 +557,7 @@ function Resumes() {
           <button 
             className="button-secondary" 
             onClick={() => {
-              setStatusFilter('');
-              setProposalFilter('');
+              setUserProfileFilter('');
               setSearchQuery('');
             }}
           >
@@ -574,87 +573,81 @@ function Resumes() {
 
       {/* Resumes Table */}
       <div className="unified-table-container">
-        <table className="unified-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Status</th>
-              <th>Proposal</th>
-              <th>Client</th>
-              <th>Experiences</th>
-              <th>Created</th>
-              <th>Updated</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredResumes.length === 0 ? (
-              <tr>
-                <td colSpan="8" className="table-no-data">
-                  {resumes.length === 0 ? 'No resumes found. Create your first resume!' : 'No resumes match your filters.'}
-                </td>
-              </tr>
-            ) : (
-              filteredResumes.map((resume, index) => (
-                <tr 
-                  key={resume.id} 
-                  className="resume-row"
-                  onClick={() => handleEditResume(resume)}
-                  style={{ cursor: 'pointer' }}
-                  title="Click to edit resume"
-                >
-                  <td>
-                    <div className="table-primary-text">{getDisplayName(resume, index)}</div>
-                  </td>
-                  <td>
-                    <span className={`status-badge status-${resume.status?.toLowerCase()}`}>
-                      {resume.status || 'Draft'}
-                    </span>
-                  </td>
-                  <td>{resume.proposal_name || 'No Proposal'}</td>
-                  <td>{resume.client_name || 'N/A'}</td>
-                  <td>{resume.experience_count}</td>
-                  <td>{formatDate(resume.created_at)}</td>
-                  <td>{formatDate(resume.updated_at)}</td>
-                  <td>
-                    <div className="table-actions">
-                      <button 
-                        className="table-action-edit" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditResume(resume);
-                        }}
-                        title="Edit Resume"
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        className="table-action-edit" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleGeneratePDF(resume.id);
-                        }}
-                        title="Download PDF"
-                      >
-                        PDF
-                      </button>
-                      <button 
-                        className="table-action-delete" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setConfirmDeleteId(resume.id);
-                        }}
-                        title="Delete Resume"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div className="unified-grid-table">
+          <div className="unified-grid-header resumes-grid">
+            <div>Name</div>
+            <div>User Profile</div>
+            <div>Updated</div>
+            <div>Actions</div>
+          </div>
+          
+          {filteredResumes.length === 0 ? (
+            <div className="unified-grid-row">
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                {resumes.length === 0 ? 'No resumes found. Create your first resume!' : 'No resumes match your filters.'}
+              </div>
+            </div>
+          ) : (
+            filteredResumes.map((resume, index) => (
+              <div 
+                key={resume.id} 
+                className="unified-grid-row resumes-grid resume-row"
+                onClick={() => handleEditResume(resume)}
+                style={{ cursor: 'pointer' }}
+                title="Click to edit resume"
+              >
+                <div className="table-primary-text">{getDisplayName(resume, index)}</div>
+                <div>
+                  {resume.user_profile_id ? (
+                    (() => {
+                      const profile = userProfiles.find(p => p.id === resume.user_profile_id);
+                      return profile ? (
+                        <span>Profile #{profile.id}</span>
+                      ) : (
+                        <span>Profile #{resume.user_profile_id}</span>
+                      );
+                    })()
+                  ) : (
+                    <span className="table-secondary-text">N/A</span>
+                  )}
+                </div>
+                <div>{formatDate(resume.updated_at)}</div>
+                <div className="table-actions">
+                  <button 
+                    className="table-action-edit" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditResume(resume);
+                    }}
+                    title="Edit Resume"
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    className="table-action-edit" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleGeneratePDF(resume.id);
+                    }}
+                    title="Download PDF"
+                  >
+                    PDF
+                  </button>
+                  <button 
+                    className="table-action-delete" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmDeleteId(resume.id);
+                    }}
+                    title="Delete Resume"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Create Resume Modal */}
@@ -699,7 +692,7 @@ function Resumes() {
                 <option value="">Default Profile</option>
                 {userProfiles.map(profile => (
                   <option key={profile.id} value={profile.id}>
-                    Profile #{profile.id}
+                    {profile.full_name || profile.first_name + ' ' + profile.last_name || `Profile #${profile.id}`}
                   </option>
                 ))}
               </select>

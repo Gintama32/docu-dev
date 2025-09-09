@@ -86,3 +86,4 @@ A typical template should include:
 - **Version Control**: Template changes are tracked in git
 - **Reusability**: Templates can be loaded by multiple parts of the application
 - **Development Friendly**: Template files list available during development
+

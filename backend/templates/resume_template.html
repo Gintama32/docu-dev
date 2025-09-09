@@ -146,6 +146,36 @@
             margin-bottom: 0;
         }
 
+        .project-client, .project-dates, .project-location {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .project-value {
+            font-size: 11px;
+            color: #27ae60;
+            font-weight: bold;
+            margin-top: 6px;
+        }
+
+        .project-tags {
+            font-size: 10px;
+            color: #666;
+            margin-top: 6px;
+        }
+
+        .skill-category {
+            margin-bottom: 12px;
+        }
+
+        .skill-category strong {
+            font-size: 11px;
+            color: #333;
+            display: block;
+            margin-bottom: 4px;
+        }
+
         /* Print Optimizations */
         @media print {
             body {
@@ -167,65 +197,138 @@
     <div class="header-row">
         <img src="{{ base_url }}/static/images/logo.jpg" alt="Company Logo" class="logo" />
         <div class="header-text">
-            <div class="name">{{ resume.name or "Professional Name" }}</div>
-            <div class="title">{{ resume.title or "Professional Title" }}</div>
+            <div class="name">{{ profile.display_name if profile else "Professional Name" }}</div>
+            <div class="title">{{ profile.current_title if profile and profile.current_title else "Professional Title" }}</div>
         </div>
     </div>
 
     <div class="resume-container">
         <div class="sidebar">
+            {% if profile and profile.main_image_url %}
             <div class="sidebar-section">
-                <img src="{{ base_url }}/static/images/pic.jpg" alt="Profile Picture" class="profile-picture" />
+                <img src="{{ profile.main_image_url }}" alt="Profile Picture" class="profile-picture" />
             </div>
+            {% endif %}
 
+            {% if profile and profile.has_contact_info %}
             <div class="sidebar-section">
                 <div class="sidebar-section-title">CONTACT</div>
-                <p>123 Main Street<br>
-                City, State 12345<br>
-                (555) 123-4567<br>
-                email@example.com</p>
+                <p>
+                    {% if profile.address %}{{ profile.address }}<br>{% endif %}
+                    {% if profile.mobile %}{{ profile.mobile }}<br>{% endif %}
+                    {% if profile.email %}{{ profile.email }}<br>{% endif %}
+                    {% if profile.about_url %}{{ profile.about_url }}{% endif %}
+                </p>
             </div>
+            {% endif %}
 
+            {% if profile and profile.education and profile.education|length > 0 %}
             <div class="sidebar-section">
                 <div class="sidebar-section-title">EDUCATION</div>
-                <p><strong>Degree Name</strong><br>
-                University Name<br>
-                Year</p>
+                {% for edu in profile.education %}
+                <p>
+                    {% if edu.degree %}<strong>{{ edu.degree }}</strong><br>{% endif %}
+                    {% if edu.school %}{{ edu.school }}<br>{% endif %}
+                    {% if edu.year %}{{ edu.year }}{% endif %}
+                </p>
+                {% if not loop.last %}<br>{% endif %}
+                {% endfor %}
             </div>
+            {% endif %}
 
+            {% if profile and profile.skills and profile.skills|length > 0 %}
             <div class="sidebar-section">
                 <div class="sidebar-section-title">SKILLS</div>
-                <ul>
-                    <li>Project Management</li>
-                    <li>Construction Oversight</li>
-                    <li>Cost Estimation</li>
-                    <li>Team Leadership</li>
-                    <li>Quality Assurance</li>
-                </ul>
+                {% if profile.skills_by_category|length > 1 %}
+                    {# Group by category if multiple categories exist #}
+                    {% for category, skills in profile.skills_by_category.items() %}
+                    <div class="skill-category">
+                        <strong>{{ category }}</strong>
+                        <ul>
+                            {% for skill in skills %}
+                            <li>{{ skill.name }}{% if skill.level %} ({{ skill.level }}){% endif %}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    {# Simple list if only one category or no categories #}
+                    <ul>
+                        {% for skill in profile.skills %}
+                        <li>{{ skill.name }}{% if skill.level %} ({{ skill.level }}){% endif %}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
             </div>
+            {% endif %}
 
+            {% if profile and profile.certifications and profile.certifications|length > 0 %}
             <div class="sidebar-section">
                 <div class="sidebar-section-title">CERTIFICATIONS</div>
                 <ul>
-                    <li>Professional Engineer (PE)</li>
-                    <li>Project Management Professional (PMP)</li>
+                    {% for cert in profile.certifications %}
+                    <li>
+                        {{ cert.name }}
+                        {% if cert.issuer %} ({{ cert.issuer }}){% endif %}
+                        {% if cert.date %} - {{ cert.date }}{% endif %}
+                    </li>
+                    {% endfor %}
                 </ul>
             </div>
+            {% endif %}
         </div>
 
         <div class="main-content">
+            {% if proposal %}
+            <div class="proposal-header">
+                <h2 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px; margin-bottom: 15px;">
+                    {{ proposal.name }}
+                </h2>
+                {% if proposal.client_name %}
+                <div style="color: #666; font-style: italic; margin-bottom: 10px;">
+                    Client: {{ proposal.client_name }}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
             <div class="summary">
-                <p>{{ proposal.context or "Professional summary highlighting key experience and expertise relevant to the project requirements." }}</p>
+                {% if profile and profile.professional_intro %}
+                <p>{{ profile.professional_intro }}</p>
+                {% elif proposal and proposal.context %}
+                <p>{{ proposal.context }}</p>
+                {% else %}
+                <p>Professional summary highlighting key experience and expertise relevant to the project requirements.</p>
+                {% endif %}
             </div>
 
+            {% if experiences and experiences|length > 0 %}
             <div class="projects-section">
                 {% for exp in experiences %}
                 <div class="project">
                     <h3 class="project-title">{{ exp.project_name }}</h3>
+                    {% if exp.client_name %}
+                    <div class="project-client">Client: {{ exp.client_name }}</div>
+                    {% endif %}
+                    {% if exp.date_range %}
+                    <div class="project-dates">{{ exp.date_range }}</div>
+                    {% endif %}
+                    {% if exp.location %}
+                    <div class="project-location">Location: {{ exp.location }}</div>
+                    {% endif %}
                     <p>{{ exp.project_description }}</p>
+                    {% if exp.project_value %}
+                    <div class="project-value">Project Value: ${{ "{:,.0f}".format(exp.project_value) }}</div>
+                    {% endif %}
+                    {% if exp.tags and exp.tags|length > 0 %}
+                    <div class="project-tags">
+                        <strong>Technologies:</strong> {{ exp.tags|join(', ') }}
+                    </div>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
+            {% endif %}
         </div>
     </div>
 </body>

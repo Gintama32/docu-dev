@@ -18,7 +18,8 @@ function ToastContainer({ toasts, dismiss }) {
       flexDirection: 'column',
       gap: 10,
       zIndex: 1000,
-    }}>
+    }}
+    >
       {toasts.map((t) => (
         <div
           key={t.id}

@@ -161,7 +161,9 @@ function ResumeListTab({
                 <select value={selectedProfileId} onChange={(e)=>setSelectedProfileId(e.target.value)}>
                   <option value="">Select profile…</option>
                   {userProfiles.map(p => (
-                    <option key={p.id} value={p.id}>Profile #{p.id}</option>
+                    <option key={p.id} value={p.id}>
+                      {p.full_name || p.first_name + ' ' + p.last_name || `Profile #${p.id}`}
+                    </option>
                   ))}
                 </select>
               ) : (

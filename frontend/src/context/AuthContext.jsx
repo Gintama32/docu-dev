@@ -30,7 +30,9 @@ export const AuthProvider = ({ children }) => {
     api.configure({
       getToken: () => token,
       onUnauthorized: () => logout(),
-      // baseUrl: import.meta.env.VITE_API_BASE || '' // optional, proxy by default
+      // In production, set VITE_API_BASE to point to your backend origin.
+      // In development, leave it unset to use the dev server proxy.
+      baseUrl: import.meta.env?.VITE_API_BASE || ''
     });
   }, [token]);
 

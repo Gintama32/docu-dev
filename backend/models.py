@@ -149,17 +149,122 @@ class UserProfile(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    main_image_id = Column(Integer, ForeignKey("media.id"), nullable=True)
-    intro = Column(Text, nullable=True)
-    certificates = Column(JSON, nullable=True)  # List of certificates or structured data
+    # Basic Information
+    first_name = Column(String(100), nullable=True)
+    last_name = Column(String(100), nullable=True)
+    full_name = Column(String(200), nullable=True)
+    current_title = Column(String(200), nullable=True)
+    professional_intro = Column(Text, nullable=True)  # renamed from 'intro'
+    
+    # Employment Information
+    department = Column(String(100), nullable=True)
+    employee_type = Column(String(50), nullable=True)  # contract/full-time/consultant
+    is_current_employee = Column(Boolean, default=True, nullable=True)
+    
+    # Contact Information
+    email = Column(String(255), nullable=True)
+    mobile = Column(String(50), nullable=True)
+    address = Column(String(500), nullable=True)
+    about_url = Column(String(500), nullable=True)
 
+    # JSON fields for collections
+    skills = Column(JSON, nullable=True, default=list)
+    certifications = Column(JSON, nullable=True, default=list)
+    education = Column(JSON, nullable=True, default=list)
+    
+    # Legacy/System fields
+    main_image_id = Column(Integer, ForeignKey("media.id"), nullable=True)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime, nullable=True)
 
+    # Relationships
     user = relationship("User", back_populates="user_profiles")
     main_image = relationship("Media")
     resumes = relationship("Resume", back_populates="user_profile")
+
+
+class ProfileExperience(Base):
+    __tablename__ = "profile_experiences"
+    id = Column(Integer, primary_key=True)
+    user_profile_id = Column(Integer, ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False)
+    
+    company_name = Column(String(200), nullable=True)
+    position = Column(String(200), nullable=True)
+    experience_start = Column(Date, nullable=True)
+    experience_end = Column(Date, nullable=True)
+    experience_detail = Column(Text, nullable=True)
+    is_current = Column(Boolean, default=False, nullable=True)
+    display_order = Column(Integer, default=0, nullable=True)
+    
+    # Relationship
+    user_profile = relationship("UserProfile")
+    
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    user_profile = relationship("UserProfile")
+
+
+class ProfileSkill(Base):
+    __tablename__ = "profile_skills"
+    id = Column(Integer, primary_key=True)
+    user_profile_id = Column(Integer, ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False)
+    
+    skill_name = Column(String(200), nullable=False)
+    skill_level = Column(String(50), nullable=True)
+    years_of_experience = Column(Integer, nullable=True)
+    category = Column(String(100), nullable=True)
+    display_order = Column(Integer, default=0, nullable=True)
+    
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    
+    # Relationship
+    user_profile = relationship("UserProfile")
+
+
+class ProfileCertification(Base):
+    __tablename__ = "profile_certifications"
+    id = Column(Integer, primary_key=True)
+    user_profile_id = Column(Integer, ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False)
+    
+    name = Column(String(200), nullable=False)
+    issuing_organization = Column(String(200), nullable=False)
+    issue_date = Column(Date, nullable=True)
+    expiration_date = Column(Date, nullable=True)
+    credential_id = Column(String(100), nullable=True)
+    credential_url = Column(String(500), nullable=True)
+    display_order = Column(Integer, default=0, nullable=True)
+    
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    
+    # Relationship
+    user_profile = relationship("UserProfile")
+
+
+class ProfileEducation(Base):
+    __tablename__ = "profile_education"
+    id = Column(Integer, primary_key=True)
+    user_profile_id = Column(Integer, ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False)
+    
+    institution = Column(String(200), nullable=False)
+    degree = Column(String(200), nullable=False)
+    field_of_study = Column(String(200), nullable=False)
+    start_date = Column(Date, nullable=True)
+    end_date = Column(Date, nullable=True)
+    gpa = Column(Numeric(3, 2), nullable=True)
+    description = Column(Text, nullable=True)
+    activities = Column(Text, nullable=True)
+    display_order = Column(Integer, default=0, nullable=True)
+    
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    
+    # Relationship
+    user_profile = relationship("UserProfile")
 
 
 class Project(Base):

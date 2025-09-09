@@ -9,7 +9,7 @@ import './Proposals.css';
 
 function Experience() {
   const toast = useToast();
-  const { getClients, getContacts } = useData();
+  const { getClients, getContacts, getExperiences, refreshExperiences } = useData();
   const [clients, setClients] = useState([]);
   const [contacts, setContacts] = useState([]);
 
@@ -43,9 +43,8 @@ function Experience() {
   const fetchList = async (query) => {
     setLoading(true);
     try {
-      const url = query && query.trim() ? `/api/experiences?q=${encodeURIComponent(query.trim())}` : '/api/experiences';
-      const { response, data } = await api.json(url);
-      if (response.ok) setItems(data || []);
+      const data = await getExperiences(query?.trim());
+      setItems(data || []);
     } finally {
       setLoading(false);
     }

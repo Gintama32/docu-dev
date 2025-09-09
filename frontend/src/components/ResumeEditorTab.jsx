@@ -19,23 +19,7 @@ function ResumeEditorTab({
   const [showEditor, setShowEditor] = useState(false);
   const [templates, setTemplates] = useState([]);
 
-  // Function to write content to iframe
-  const updateIframeContent = () => {
-    if (iframeRef.current && editedResumeContent) {
-      const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
-      iframeDoc.open();
-      iframeDoc.write(editedResumeContent);
-      iframeDoc.close();
-    }
-  };
-
-  // Update iframe when content changes or when switching to preview mode
-  useEffect(() => {
-    if (!showEditor) {
-      // Small delay to ensure iframe is mounted
-      setTimeout(updateIframeContent, 0);
-    }
-  }, [editedResumeContent, showEditor]);
+  // The iframe content is now handled via srcDoc prop, no manual updates needed
 
   // Load templates for the template select
   useEffect(() => {
@@ -54,6 +38,18 @@ function ResumeEditorTab({
       } catch (_) {}
     })();
   }, []);
+
+  // Helper to refresh the current resume after backend mutations so
+  // other tabs immediately reflect the latest state
+  const refreshResume = async () => {
+    try {
+      const res = await api.request(`/api/resumes/${editingResume.id}`);
+      if (res.ok) {
+        const updated = await res.json();
+        if (typeof onResumeUpdated === 'function') onResumeUpdated(updated);
+      }
+    } catch (_) {}
+  };
 
   const handleDownloadPDF = async () => {
     try {
@@ -97,14 +93,14 @@ function ResumeEditorTab({
       <div className="resume-editor-header">
         <div style={{ display: 'flex', gap: 8 }}>
           <button 
-             type="button" 
-             className="button-primary button-with-icon"
-             onClick={handleUpdateResume}
-             title="Regenerate resume content with current experiences and personalizations"
-           >
-             <RefreshIcon style={{ fontSize: '20px' }} />
-             Regenerate
-           </button>
+            type="button" 
+            className="button-primary button-with-icon"
+            onClick={handleUpdateResume}
+            title="Regenerate resume content with current experiences and personalizations"
+          >
+            <RefreshIcon style={{ fontSize: '20px' }} />
+            Regenerate
+          </button>
           <select
             value={editingResume?.template_id || ''}
             onChange={async (e) => {
@@ -115,18 +111,27 @@ function ResumeEditorTab({
                   body: JSON.stringify({ template_id: tplId })
                 });
                 if (!res.ok) return;
-                const updated = await res.json();
-                if (typeof onResumeUpdated === 'function') onResumeUpdated(updated);
+                await refreshResume();
                 // Regenerate to apply template immediately
                 const regen = await api.request('/api/generate-final-resume', {
                   method: 'POST',
-                  body: JSON.stringify({ resume_id: updated.id })
+                  body: JSON.stringify({ resume_id: editingResume.id })
                 });
                 if (regen.ok) {
                   const regenData = await regen.json();
-                  if (regenData.generated_content) setEditedResumeContent(regenData.generated_content);
+                  if (regenData.success && regenData.generated_content) {
+                    setEditedResumeContent(regenData.generated_content);
+                    toast.success('Template switched and resume regenerated!');
+                  } else {
+                    toast.error('Template regeneration failed: ' + (regenData.message || 'Unknown error'));
+                  }
+                } else {
+                  toast.error('Failed to regenerate with new template');
                 }
-              } catch(_) {}
+              } catch(err) {
+                console.error('Error switching template:', err);
+                toast.error('Failed to switch template: ' + err.message);
+              }
             }}
             title="Switch template"
           >
@@ -169,6 +174,7 @@ function ResumeEditorTab({
             className="resume-preview-iframe"
             title="Resume Preview"
             sandbox="allow-same-origin"
+            srcDoc={editedResumeContent || '<html><body><p>Loading resume...</p></body></html>'}
             style={{
               width: '100%',
               height: '600px',

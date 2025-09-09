@@ -149,11 +149,16 @@ def get_user_profile(db: Session, profile_id: int):
     return db.query(models.UserProfile).filter(models.UserProfile.id == profile_id).first()
 
 
+def get_user_profile_full(db: Session, profile_id: int):
+    """Get UserProfile - simple version"""
+    return get_user_profile(db, profile_id)
+
+
 def get_user_profiles(db: Session, skip: int = 0, limit: int = 100, q: str | None = None):
     query = db.query(models.UserProfile)
     if q:
         like = f"%{q}%"
-        query = query.filter((models.UserProfile.intro.ilike(like)))
+        query = query.filter(models.UserProfile.name.ilike(like))
     return query.offset(skip).limit(limit).all()
 
 
@@ -162,32 +167,219 @@ def get_user_profiles_for_user(db: Session, user_id: int, skip: int = 0, limit: 
 
 
 def create_user_profile(db: Session, profile: schemas.UserProfileCreate):
-    db_prof = models.UserProfile(**profile.dict())
-    db.add(db_prof)
+    db_profile = models.UserProfile(**profile.dict())
+    db.add(db_profile)
     db.commit()
-    db.refresh(db_prof)
-    return db_prof
+    db.refresh(db_profile)
+    return db_profile
 
 
 def update_user_profile(db: Session, profile_id: int, profile_update: schemas.UserProfileUpdate):
     db_prof = get_user_profile(db, profile_id)
     if not db_prof:
         return None
-    for key, value in profile_update.dict(exclude_unset=True).items():
+    
+    # Simple approach: convert to dict and handle JSON fields
+    update_data = profile_update.dict(exclude_unset=True)
+    
+    for key, value in update_data.items():
+        # Handle JSON fields: convert None to empty list
+        if key in ['skills', 'certifications', 'education'] and value is None:
+            value = []
+        
         setattr(db_prof, key, value)
-    db.add(db_prof)
+    
     db.commit()
     db.refresh(db_prof)
     return db_prof
 
 
-def delete_user_profile(db: Session, profile_id: int) -> bool:
-    db_prof = get_user_profile(db, profile_id)
-    if not db_prof:
+def delete_user_profile(db: Session, profile_id: int):
+    db_profile = get_user_profile(db, profile_id)
+    if not db_profile:
         return False
-    db.delete(db_prof)
+    db.delete(db_profile)
     db.commit()
     return True
+
+
+# Profile Experiences CRUD
+def get_profile_experience(db: Session, experience_id: int):
+    return db.query(models.ProfileExperience).filter(models.ProfileExperience.id == experience_id).first()
+
+
+def get_profile_experiences_for_profile(db: Session, profile_id: int):
+    return db.query(models.ProfileExperience).filter(models.ProfileExperience.user_profile_id == profile_id).all()
+
+
+def create_profile_experience(db: Session, experience: schemas.ProfileExperienceCreate):
+    db_exp = models.ProfileExperience(**experience.dict())
+    db.add(db_exp)
+    db.commit()
+    db.refresh(db_exp)
+    return db_exp
+
+
+def update_profile_experience(db: Session, experience_id: int, experience_update: schemas.ProfileExperienceUpdate):
+    db_exp = get_profile_experience(db, experience_id)
+    if not db_exp:
+        return None
+    for key, value in experience_update.dict(exclude_unset=True).items():
+        setattr(db_exp, key, value)
+    db.add(db_exp)
+    db.commit()
+    db.refresh(db_exp)
+    return db_exp
+
+
+def delete_profile_experience(db: Session, experience_id: int) -> bool:
+    db_exp = get_profile_experience(db, experience_id)
+    if not db_exp:
+        return False
+    db.delete(db_exp)
+    db.commit()
+    return True
+
+
+# Profile Skills CRUD
+def get_profile_skill(db: Session, skill_id: int):
+    return db.query(models.ProfileSkill).filter(models.ProfileSkill.id == skill_id).first()
+
+
+def get_profile_skills_for_profile(db: Session, profile_id: int):
+    return db.query(models.ProfileSkill).filter(models.ProfileSkill.user_profile_id == profile_id).all()
+
+
+def create_profile_skill(db: Session, skill: schemas.ProfileSkillCreate):
+    db_skill = models.ProfileSkill(**skill.dict())
+    db.add(db_skill)
+    db.commit()
+    db.refresh(db_skill)
+    return db_skill
+
+
+def update_profile_skill(db: Session, skill_id: int, skill_update: schemas.ProfileSkillUpdate):
+    db_skill = get_profile_skill(db, skill_id)
+    if not db_skill:
+        return None
+    for key, value in skill_update.dict(exclude_unset=True).items():
+        setattr(db_skill, key, value)
+    db.add(db_skill)
+    db.commit()
+    db.refresh(db_skill)
+    return db_skill
+
+
+def delete_profile_skill(db: Session, skill_id: int) -> bool:
+    db_skill = get_profile_skill(db, skill_id)
+    if not db_skill:
+        return False
+    db.delete(db_skill)
+    db.commit()
+    return True
+
+
+# Profile Certifications CRUD
+def get_profile_certification(db: Session, certification_id: int):
+    return db.query(models.ProfileCertification).filter(models.ProfileCertification.id == certification_id).first()
+
+
+def get_profile_certifications_for_profile(db: Session, profile_id: int):
+    return db.query(models.ProfileCertification).filter(models.ProfileCertification.user_profile_id == profile_id).all()
+
+
+def create_profile_certification(db: Session, certification: schemas.ProfileCertificationCreate):
+    db_cert = models.ProfileCertification(**certification.dict())
+    db.add(db_cert)
+    db.commit()
+    db.refresh(db_cert)
+    return db_cert
+
+
+def update_profile_certification(
+    db: Session, certification_id: int, certification_update: schemas.ProfileCertificationUpdate
+):
+    db_cert = get_profile_certification(db, certification_id)
+    if not db_cert:
+        return None
+    for key, value in certification_update.dict(exclude_unset=True).items():
+        setattr(db_cert, key, value)
+    db.add(db_cert)
+    db.commit()
+    db.refresh(db_cert)
+    return db_cert
+
+
+def delete_profile_certification(db: Session, certification_id: int) -> bool:
+    db_cert = get_profile_certification(db, certification_id)
+    if not db_cert:
+        return False
+    db.delete(db_cert)
+    db.commit()
+    return True
+
+
+# Profile Education CRUD
+def get_profile_education(db: Session, education_id: int):
+    return db.query(models.ProfileEducation).filter(models.ProfileEducation.id == education_id).first()
+
+
+def get_profile_educations_for_profile(db: Session, profile_id: int):
+    return (
+        db.query(models.ProfileEducation)
+        .filter(models.ProfileEducation.user_profile_id == profile_id)
+        .order_by(models.ProfileEducation.display_order.asc(), models.ProfileEducation.id.asc())
+        .all()
+    )
+
+
+def create_profile_education(db: Session, education: schemas.ProfileEducationCreate):
+    db_edu = models.ProfileEducation(**education.dict())
+    db.add(db_edu)
+    db.commit()
+    db.refresh(db_edu)
+    return db_edu
+
+
+def update_profile_education(db: Session, education_id: int, education_update: schemas.ProfileEducationUpdate):
+    db_edu = get_profile_education(db, education_id)
+    if not db_edu:
+        return None
+    update_data = education_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_edu, key, value)
+    db.add(db_edu)
+    db.commit()
+    db.refresh(db_edu)
+    return db_edu
+
+
+def delete_profile_education(db: Session, education_id: int):
+    db_edu = get_profile_education(db, education_id)
+    if db_edu:
+        db.delete(db_edu)
+        db.commit()
+        return True
+    return False
+
+
+def reorder_profile_educations(db: Session, profile_id: int, education_ids: list[int]) -> bool:
+    """Update display_order for multiple educations at once."""
+    try:
+        # Get all educations for this profile
+        educations = get_profile_educations_for_profile(db, profile_id)
+        education_map = {str(edu.id): edu for edu in educations}
+        
+        # Update display_order based on the provided order
+        for order, edu_id in enumerate(education_ids, 1):
+            if str(edu_id) in education_map:
+                education_map[str(edu_id)].display_order = order
+        
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        return False
 
 
 # Projects CRUD
@@ -381,6 +573,10 @@ def delete_resume(db: Session, resume_id: int):
 
 def get_resume(db: Session, resume_id: int):
     return db.query(models.Resume).filter(models.Resume.id == resume_id).first()
+
+
+def get_resumes(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Resume).offset(skip).limit(limit).all()
 
 
 def create_user(db: Session, user: schemas.UserCreate) -> models.User:

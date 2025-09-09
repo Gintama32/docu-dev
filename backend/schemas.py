@@ -1,7 +1,7 @@
 from datetime import date, datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Literal
 
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, HttpUrl, Field, field_validator
 
 
 # User schemas
@@ -316,12 +316,57 @@ class Media(MediaBase):
         from_attributes = True
 
 
+# JSON field validation schemas
+class CertificationItem(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    issuer: Optional[str] = Field(None, max_length=200)
+    acquired_date: Optional[date] = None
+    valid_until: Optional[date] = None
+    credential_id: Optional[str] = Field(None, max_length=100)
+
+class SkillItem(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    level: Optional[Literal["Beginner", "Intermediate", "Advanced", "Expert"]] = "Intermediate"
+    years: Optional[int] = Field(None, ge=0, le=50)
+    category: Optional[str] = Field(None, max_length=100)
+
+class EducationItem(BaseModel):
+    institution: str = Field(..., min_length=1, max_length=200)
+    degree: str = Field(..., min_length=1, max_length=200)
+    field: Optional[str] = Field(None, max_length=200)
+    graduation_year: Optional[int] = Field(None, ge=1950, le=2030)
+    gpa: Optional[float] = Field(None, ge=0.0, le=4.0)
+    honors: Optional[str] = Field(None, max_length=100)
+
 # UserProfile schemas
 class UserProfileBase(BaseModel):
     user_id: int
+    
+    # Basic Information
+    first_name: Optional[str] = Field(None, max_length=100)
+    last_name: Optional[str] = Field(None, max_length=100)
+    full_name: Optional[str] = Field(None, max_length=200)
+    current_title: Optional[str] = Field(None, max_length=200)
+    professional_intro: Optional[str] = None
+    
+    # Employment Information
+    department: Optional[str] = Field(None, max_length=100)
+    employee_type: Optional[Literal["contract", "full-time", "consultant"]] = None
+    is_current_employee: Optional[bool] = True
+    
+    # Contact Information
+    email: Optional[EmailStr] = None
+    mobile: Optional[str] = Field(None, max_length=50)
+    address: Optional[str] = Field(None, max_length=500)
+    about_url: Optional[HttpUrl] = None
+    
+    # Collections
+    certifications: Optional[List[CertificationItem]] = []
+    skills: Optional[List[SkillItem]] = []
+    education: Optional[List[EducationItem]] = []
+    
+    # System fields
     main_image_id: Optional[int] = None
-    intro: Optional[str] = None
-    certificates: Optional[List[Union[str, Dict[str, Any]]]] = None
 
 
 class UserProfileCreate(UserProfileBase):
@@ -329,12 +374,171 @@ class UserProfileCreate(UserProfileBase):
 
 
 class UserProfileUpdate(BaseModel):
+    # Basic Information
+    first_name: Optional[str] = Field(None, max_length=100)
+    last_name: Optional[str] = Field(None, max_length=100)
+    full_name: Optional[str] = Field(None, max_length=200)
+    current_title: Optional[str] = Field(None, max_length=200)
+    professional_intro: Optional[str] = None
+    
+    # Employment Information
+    department: Optional[str] = Field(None, max_length=100)
+    employee_type: Optional[Literal["contract", "full-time", "consultant"]] = None
+    is_current_employee: Optional[bool] = None
+    
+    # Contact Information
+    email: Optional[EmailStr] = None
+    mobile: Optional[str] = Field(None, max_length=50)
+    address: Optional[str] = Field(None, max_length=500)
+    about_url: Optional[HttpUrl] = None
+    
+    # Collections
+    certifications: Optional[List[CertificationItem]] = None
+    skills: Optional[List[SkillItem]] = None
+    education: Optional[List[EducationItem]] = None
+    
+    # System fields
     main_image_id: Optional[int] = None
-    intro: Optional[str] = None
-    certificates: Optional[List[Union[str, Dict[str, Any]]]] = None
 
 
 class UserProfile(UserProfileBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ProfileExperience schemas
+class ProfileExperienceBase(BaseModel):
+    user_profile_id: int
+    company_name: Optional[str] = Field(None, max_length=200)
+    position: Optional[str] = Field(None, max_length=200)
+    experience_start: Optional[date] = None
+    experience_end: Optional[date] = None
+    experience_detail: Optional[str] = None
+    is_current: Optional[bool] = False
+    display_order: Optional[int] = 0
+
+class ProfileExperienceCreate(ProfileExperienceBase):
+    pass
+
+class ProfileExperienceUpdate(BaseModel):
+    company_name: Optional[str] = Field(None, max_length=200)
+    position: Optional[str] = Field(None, max_length=200)
+    experience_start: Optional[date] = None
+    experience_end: Optional[date] = None
+    experience_detail: Optional[str] = None
+    is_current: Optional[bool] = None
+    display_order: Optional[int] = None
+
+class ProfileExperience(ProfileExperienceBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ProfileSkill schemas
+class ProfileSkillBase(BaseModel):
+    user_profile_id: int
+    skill_name: str = Field(..., max_length=200)
+    skill_level: Optional[str] = Field(None, max_length=50)
+    years_of_experience: Optional[int] = None
+    category: Optional[str] = Field(None, max_length=100)
+    display_order: Optional[int] = 0
+
+
+class ProfileSkillCreate(ProfileSkillBase):
+    pass
+
+
+class ProfileSkillUpdate(BaseModel):
+    skill_name: Optional[str] = Field(None, max_length=200)
+    skill_level: Optional[str] = Field(None, max_length=50)
+    years_of_experience: Optional[int] = None
+    category: Optional[str] = Field(None, max_length=100)
+    display_order: Optional[int] = None
+
+
+class ProfileSkill(ProfileSkillBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ProfileCertification schemas
+class ProfileCertificationBase(BaseModel):
+    user_profile_id: int
+    name: str = Field(..., max_length=200)
+    issuing_organization: str = Field(..., max_length=200)
+    issue_date: Optional[date] = None
+    expiration_date: Optional[date] = None
+    credential_id: Optional[str] = Field(None, max_length=100)
+    credential_url: Optional[HttpUrl] = None
+    display_order: Optional[int] = 0
+
+
+class ProfileCertificationCreate(ProfileCertificationBase):
+    pass
+
+
+class ProfileCertificationUpdate(BaseModel):
+    name: Optional[str] = Field(None, max_length=200)
+    issuing_organization: Optional[str] = Field(None, max_length=200)
+    issue_date: Optional[date] = None
+    expiration_date: Optional[date] = None
+    credential_id: Optional[str] = Field(None, max_length=100)
+    credential_url: Optional[HttpUrl] = None
+    display_order: Optional[int] = None
+
+
+class ProfileCertification(ProfileCertificationBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ProfileEducation schemas
+class ProfileEducationBase(BaseModel):
+    user_profile_id: int
+    institution: str = Field(..., max_length=200)
+    degree: str = Field(..., max_length=200)
+    field_of_study: str = Field(..., max_length=200)
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    gpa: Optional[float] = None
+    description: Optional[str] = None
+    activities: Optional[str] = None
+    display_order: Optional[int] = 0
+
+
+class ProfileEducationCreate(ProfileEducationBase):
+    pass
+
+
+class ProfileEducationUpdate(BaseModel):
+    institution: Optional[str] = Field(None, max_length=200)
+    degree: Optional[str] = Field(None, max_length=200)
+    field_of_study: Optional[str] = Field(None, max_length=200)
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    gpa: Optional[float] = None
+    description: Optional[str] = None
+    activities: Optional[str] = None
+    display_order: Optional[int] = None
+
+
+class ProfileEducation(ProfileEducationBase):
     id: int
     created_at: datetime
     updated_at: datetime

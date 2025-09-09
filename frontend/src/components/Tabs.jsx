@@ -23,7 +23,7 @@ function Tabs({
     if (!isControlled && defaultTab) {
       setInternalActiveTab(defaultTab);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [defaultTab, isControlled]);
 
   // Ensure active tab always exists among provided tabs

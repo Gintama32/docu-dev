@@ -28,3 +28,4 @@ echo ""
 echo "7. Lint code:"
 echo "   poetry run flake8 file.py"
 echo ""
+

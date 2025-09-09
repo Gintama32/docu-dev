@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 function Sidebar() {
   const { user, logout } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [theme, setTheme] = useState(() => {
     // Check localStorage first
     const savedTheme = localStorage.getItem('theme');
@@ -36,85 +37,139 @@ function Sidebar() {
     }
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    <div className="sidebar">
-      <div className="sidebar-header">
-        <h1 className="company-name">SherpaGCM</h1>
-        <h2 className="app-name">PropNexus</h2>
-      </div>
-      <nav>
-        <ul>
-          <li>
-            <NavLink to="/proposals" className={({ isActive }) => isActive ? 'active' : ''}>
-              Proposals
-            </NavLink>
-          </li>
-        </ul>
-        <h3>Generate</h3>
-        <ul>
-          <li>
-            <NavLink to="/resumes" className={({ isActive }) => isActive ? 'active' : ''}>
-              Resumes
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/project-sheet" className={({ isActive }) => isActive ? 'active' : ''}>
-              Project Sheet
-            </NavLink>
-          </li>
-        </ul>
-        <h3>Data</h3>
-        <ul>
-          <li>
-            <NavLink to="/experience" className={({ isActive }) => isActive ? 'active' : ''}>
-              Experience
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/projects" className={({ isActive }) => isActive ? 'active' : ''}>
-              Projects
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/personnel" className={({ isActive }) => isActive ? 'active' : ''}>
-              Profiles
-            </NavLink>
-          </li>
-        </ul>
-      </nav>
-      <div className="sidebar-footer">
-        {/* User Profile Section */}
-        <div className="user-profile-section">
-          <div className="user-avatar">
-            {user?.avatar_url ? (
-              <img src={user.avatar_url} alt="Profile" className="avatar-image" />
+    <>
+      {/* Mobile Menu Button */}
+      <button 
+        className="mobile-menu-button"
+        onClick={toggleMobileMenu}
+        aria-label="Toggle menu"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="mobile-menu-overlay"
+          onClick={closeMobileMenu}
+        />
+      )}
+
+      <div className={`sidebar ${isMobileMenuOpen ? 'sidebar-mobile-open' : ''}`}>
+        <div className="sidebar-header">
+          <h1 className="company-name">SherpaGCM</h1>
+          <h2 className="app-name">PropNexus</h2>
+        </div>
+        <nav>
+          <ul>
+            <li>
+              <NavLink 
+                to="/proposals" 
+                className={({ isActive }) => isActive ? 'active' : ''}
+                onClick={closeMobileMenu}
+              >
+                Proposals
+              </NavLink>
+            </li>
+          </ul>
+          <h3>Generate</h3>
+          <ul>
+            <li>
+              <NavLink 
+                to="/resumes" 
+                className={({ isActive }) => isActive ? 'active' : ''}
+                onClick={closeMobileMenu}
+              >
+                Resumes
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/project-sheet" 
+                className={({ isActive }) => isActive ? 'active' : ''}
+                onClick={closeMobileMenu}
+              >
+                Project Sheet
+              </NavLink>
+            </li>
+          </ul>
+          <h3>Data</h3>
+          <ul>
+            <li>
+              <NavLink 
+                to="/experience" 
+                className={({ isActive }) => isActive ? 'active' : ''}
+                onClick={closeMobileMenu}
+              >
+                Experience
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/projects" 
+                className={({ isActive }) => isActive ? 'active' : ''}
+                onClick={closeMobileMenu}
+              >
+                Projects
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/personnel" 
+                className={({ isActive }) => isActive ? 'active' : ''}
+                onClick={closeMobileMenu}
+              >
+                Profiles
+              </NavLink>
+            </li>
+          </ul>
+        </nav>
+        <div className="sidebar-footer">
+          {/* User Profile Section */}
+          <div className="user-profile-section">
+            <div className="user-avatar">
+              {user?.avatar_url ? (
+                <img src={user.avatar_url} alt="Profile" className="avatar-image" />
             ) : (
               <div className="avatar-placeholder">
                 {user?.full_name?.charAt(0)?.toUpperCase() || 'U'}
               </div>
             )}
-          </div>
-          <div className="user-info">
-            <div className="user-name">{user?.full_name || 'User'}</div>
-            <div className="user-email">{user?.email}</div>
-            {user?.department && (
+            </div>
+            <div className="user-info">
+              <div className="user-name">{user?.full_name || 'User'}</div>
+              <div className="user-email">{user?.email}</div>
+              {user?.department && (
               <div className="user-department">{user.department}</div>
             )}
+            </div>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="sidebar-actions">
-          <button 
-            className="theme-toggle-sidebar" 
-            onClick={toggleTheme}
-            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-          >
-            {theme === 'light' ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-              </svg>
+          {/* Action Buttons */}
+          <div className="sidebar-actions">
+            <button 
+              className="theme-toggle-sidebar" 
+              onClick={toggleTheme}
+              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
             ) : (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="5"></circle>
@@ -128,23 +183,24 @@ function Sidebar() {
                 <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
               </svg>
             )}
-          </button>
+            </button>
 
-          <button 
-            className="logout-button" 
-            onClick={handleLogout}
-            aria-label="Logout"
-            title="Logout"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16,17 21,12 16,7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-          </button>
+            <button 
+              className="logout-button" 
+              onClick={handleLogout}
+              aria-label="Logout"
+              title="Logout"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16,17 21,12 16,7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

@@ -7,6 +7,7 @@ import Experience from './pages/Experience';
 import ProjectSheet from './pages/ProjectSheet';
 import Projects from './pages/Projects';
 import Personnel from './pages/Personnel';
+import ProfilePage from './pages/ProfilePage';
 import Proposals from './pages/Proposals';
 import Login from './pages/Login';
 import './App.css';
@@ -38,6 +39,8 @@ function AppContent() {
           <Route path="/project-sheet" element={<ProjectSheet />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/personnel" element={<Personnel />} />
+          <Route path="/personnel/profile/new" element={<ProfilePage />} />
+          <Route path="/personnel/profile/:profileId" element={<ProfilePage />} />
           <Route path="/" element={<Proposals />} />
         </Routes>
       </main>

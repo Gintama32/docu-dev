@@ -45,7 +45,7 @@ const PersonalizeContentTab = ({
       prev.map(exp => {
         if (exp.experience_id === expId) {
           // Get the baseline content (what's currently saved)
-          const savedContent = exp.overridden_project_description || exp.project_description || '';
+          const savedContent = exp.overridden_project_description || exp.experience?.project_description || '';
           
           // If the new description matches the saved content, remove temp_custom_description
           if (newDescription === savedContent) {
@@ -91,7 +91,7 @@ const PersonalizeContentTab = ({
     }
     
     // Compare current edit with what's saved (overridden or original)
-    const savedContent = exp.overridden_project_description || exp.project_description || '';
+    const savedContent = exp.overridden_project_description || exp.experience?.project_description || '';
     return exp.temp_custom_description !== savedContent;
   };
 
@@ -100,7 +100,7 @@ const PersonalizeContentTab = ({
     const currentContent = exp.temp_custom_description !== undefined 
       ? exp.temp_custom_description 
       : exp.overridden_project_description || '';
-    const originalContent = exp.project_description || '';
+    const originalContent = exp.experience?.project_description || '';
     return currentContent !== originalContent;
   };
 
@@ -111,7 +111,7 @@ const PersonalizeContentTab = ({
         exp.experience_id === expId 
           ? { 
               ...exp, 
-              temp_custom_description: exp.project_description || '',
+              temp_custom_description: exp.experience?.project_description || '',
               overridden_project_description: null,
               ai_rewritten_description: null,
               use_ai_version: false
@@ -156,6 +156,10 @@ const PersonalizeContentTab = ({
         type: 'success', 
         message: 'Version preference saved successfully' 
       });
+      if (typeof onSave === 'function') {
+        // Refresh parent resume data so other tabs reflect the new state
+        onSave();
+      }
     } catch (error) {
       console.error('Error toggling AI version:', error);
       setSaveStatus({ 
@@ -201,6 +205,9 @@ const PersonalizeContentTab = ({
         type: 'success', 
         message: 'Changes saved successfully' 
       });
+      if (typeof onSave === 'function') {
+        onSave();
+      }
     } catch (error) {
       console.error('Error saving description:', error);
       setSaveStatus({ 
@@ -248,6 +255,9 @@ const PersonalizeContentTab = ({
           type: 'success', 
           message: data.message || 'AI rewrites generated successfully' 
         });
+        if (typeof onSave === 'function') {
+          onSave();
+        }
       } else {
         setSaveStatus({ 
           type: 'error', 
@@ -304,6 +314,9 @@ const PersonalizeContentTab = ({
           type: 'success', 
           message: data.message || 'AI description generated and applied' 
         });
+        if (typeof onSave === 'function') {
+          onSave();
+        }
       } else {
         setSaveStatus({ 
           type: 'error', 
@@ -360,6 +373,9 @@ const PersonalizeContentTab = ({
           type: 'success', 
           message: 'Content regenerated with custom prompt! Review and save if you like the result.' 
         });
+        if (typeof onSave === 'function') {
+          onSave();
+        }
       } else {
         setSaveStatus({ 
           type: 'error', 
@@ -525,7 +541,7 @@ const PersonalizeContentTab = ({
         {editedExperiences.map((exp) => (
           <div key={exp.experience_id} className="experience-card">
             <div className="experience-header-compact">
-              <h4 className="experience-title">{exp.project_name || 'Untitled Experience'}</h4>
+              <h4 className="experience-title">{exp.experience?.project_name || 'Untitled Experience'}</h4>
               <div className="content-actions">
                 {/* Show Generate button only if no AI content exists */}
                 {!exp.ai_rewritten_description && (
@@ -560,7 +576,7 @@ const PersonalizeContentTab = ({
                     exp.experience_id, 
                     exp.temp_custom_description !== undefined 
                       ? exp.temp_custom_description 
-                      : exp.overridden_project_description || exp.project_description || ''
+                      : exp.overridden_project_description || exp.experience?.project_description || ''
                   )}
                   disabled={isSaving || !hasUnsavedChanges(exp)}
                 >
@@ -581,7 +597,7 @@ const PersonalizeContentTab = ({
             <textarea
               value={exp.temp_custom_description !== undefined 
                 ? exp.temp_custom_description 
-                : exp.overridden_project_description || exp.project_description || ''}
+                : exp.overridden_project_description || exp.experience?.project_description || ''}
               onChange={(e) => handleDescriptionChange(exp.experience_id, e.target.value)}
               placeholder="Enter the project description..."
               rows={8}

@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: documaker-backend:staging
+    environment:
+      ENVIRONMENT: production
+      LOG_LEVEL: INFO
+      ALLOWED_HOSTS: "*"
+      CORS_ORIGINS: "*"
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      APP_URL: ${APP_URL}
+    ports:
+      - "8001:8001"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: documaker-frontend:staging
+    environment:
+      VITE_API_BASE: ${VITE_API_BASE:-http://localhost:8001}
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend

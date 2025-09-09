@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useData } from '../context/DataContext';
 import { api } from '../lib/api';
 import Modal from '../components/Modal';
 import Confirm from '../components/Confirm';
@@ -10,6 +11,7 @@ import '../components/UnifiedTable.css';
 
 function Projects() {
   const toast = useToast();
+  const { getProjects, refreshProjects } = useData();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState('');
@@ -28,9 +30,8 @@ function Projects() {
   const fetchList = async (query) => {
     setLoading(true);
     try {
-      const url = query && query.trim() ? `/api/projects?q=${encodeURIComponent(query.trim())}` : '/api/projects';
-      const { response, data } = await api.json(url);
-      if (response.ok) setItems(data || []);
+      const data = await getProjects(query?.trim());
+      setItems(data || []);
     } finally { setLoading(false); }
   };
 
@@ -50,7 +51,12 @@ function Projects() {
     const url = editing ? `/api/projects/${editing.id}` : '/api/projects';
     const method = editing ? 'PUT' : 'POST';
     const response = await api.request(url, { method, body: JSON.stringify(payload) });
-    if (response.ok) { resetForm(); setShowForm(false); fetchList(q); }
+    if (response.ok) { 
+      resetForm(); 
+      setShowForm(false); 
+      await refreshProjects();
+      fetchList(q); 
+    }
   };
 
   const onEdit = (item) => {
@@ -77,6 +83,7 @@ function Projects() {
     const response = await api.request(`/api/projects/${id}`, { method: 'DELETE' });
     if (response.ok) {
       if (editing?.id === id) resetForm();
+      await refreshProjects();
       fetchList(q);
       toast.success('Project deleted');
     } else {
