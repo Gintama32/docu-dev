@@ -30,7 +30,7 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false
 
-  - type: static
+  - type: static-site
     name: documaker-frontend
     buildCommand: npm ci --prefix frontend && npm run build --prefix frontend
     publishPath: frontend/dist
