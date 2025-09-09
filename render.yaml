@@ -10,23 +10,9 @@ services:
       name: uploads
       mountPath: /app/backend/static/uploads
       sizeGB: 1
-    envVarGroups:
-      - staging
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: documaker-db
-          property: connectionString
-
   - type: web
     name: documaker-frontend
     env: static
     buildCommand: npm ci --prefix frontend && npm run build --prefix frontend
     staticPublishPath: frontend/dist
     autoDeploy: true
-    envVarGroups:
-      - staging
-
-databases:
-  - name: documaker-db
-    plan: starter
