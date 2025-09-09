@@ -12,10 +12,19 @@ echo "Testing Playwright availability..."
 python -c "
 try:
     from playwright.sync_api import sync_playwright
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        browser.close()
     print('✅ Playwright is working correctly!')
 except Exception as e:
     print(f'❌ Playwright error: {e}')
-    print('PDF generation will be disabled')
+    if 'Executable doesn\'t exist' in str(e):
+        print('Installing Playwright browsers...')
+        import subprocess
+        subprocess.run(['python', '-m', 'playwright', 'install', 'chromium'], check=False)
+        print('Browsers installed, PDF generation should work now')
+    else:
+        print('PDF generation will be disabled')
 "
 
 # Run database migrations from backend directory

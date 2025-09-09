@@ -21,18 +21,18 @@ WORKDIR /app
 COPY backend/requirements.txt ./backend/requirements.txt
 RUN uv pip install --system --no-cache -r backend/requirements.txt
 
-# Install Playwright browsers
-RUN python -m playwright install --with-deps chromium
-
 # Copy source
 COPY backend/ ./backend/
 
 # Make start script executable
 RUN chmod +x ./backend/start.sh
 
-# Non-root user (optional)
+# Create non-root user and switch to it
 RUN useradd -ms /bin/bash appuser
 USER appuser
+
+# Install Playwright browsers as the appuser (after switching users)
+RUN python -m playwright install --with-deps chromium
 
 EXPOSE 8001
 
