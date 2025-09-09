@@ -30,10 +30,11 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false
 
-  - type: static-site
+  - type: web
     name: documaker-frontend
+    env: static
     buildCommand: npm ci --prefix frontend && npm run build --prefix frontend
-    publishPath: frontend/dist
+    staticPublishPath: frontend/dist
     autoDeploy: true
     envVars:
       - key: VITE_API_BASE
