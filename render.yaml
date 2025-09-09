@@ -3,16 +3,12 @@ services:
     name: documaker-backend
     env: docker
     dockerfilePath: backend/Dockerfile
-    plan: starter
+    plan: free
     autoDeploy: true
     healthCheckPath: /health
-    disk:
-      name: uploads
-      mountPath: /app/backend/static/uploads
-      sizeGB: 1
   - type: web
     name: documaker-frontend
     env: static
-    buildCommand: npm ci --prefix frontend && npm run build --prefix frontend
+    buildCommand: cd frontend && yarn install --frozen-lockfile && yarn build
     staticPublishPath: frontend/dist
     autoDeploy: true
