@@ -20,11 +20,14 @@ RUN apt-get update && \
       curl && \
     rm -rf /var/lib/apt/lists/*
 
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
 WORKDIR /app
 
-# Install Python deps
+# Install Python deps with uv
 COPY backend/requirements.txt ./backend/requirements.txt
-RUN pip install --no-cache-dir -r backend/requirements.txt
+RUN uv pip install --system --no-cache -r backend/requirements.txt
 
 # Copy source
 COPY backend/ ./backend/

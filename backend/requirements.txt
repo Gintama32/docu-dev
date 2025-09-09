@@ -1,15 +1,26 @@
-fastapi
-uvicorn
-sqlalchemy
-alembic
-supabase
-psycopg2-binary
-weasyprint
-jinja2
-httpx
-pydantic
-PyJWT
-python-dotenv
-passlib
-python-multipart
-email-validator
+# Core FastAPI dependencies
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.0.0
+python-multipart>=0.0.6
+
+# Database
+sqlalchemy>=2.0.0
+alembic>=1.12.0
+psycopg2-binary>=2.9.7
+
+# Authentication & Security
+PyJWT>=2.8.0
+passlib[bcrypt]>=1.7.4
+email-validator>=2.1.0
+
+# HTTP & Templating
+httpx>=0.25.0
+jinja2>=3.1.2
+python-dotenv>=1.0.0
+
+# PDF Generation
+weasyprint>=60.0
+
+# External APIs
+supabase>=2.0.0

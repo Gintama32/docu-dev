@@ -1,0 +1,10 @@
+# Development dependencies
+black>=25.1.0
+isort>=6.0.1
+flake8>=7.3.0
+mypy>=1.17.1
+autoflake>=2.3.1
+autopep8>=2.3.2
+
+# Include main requirements
+-r requirements.txt
