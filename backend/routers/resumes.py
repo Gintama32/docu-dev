@@ -10,7 +10,7 @@ from backend.services.resume_variable_resolver import resolve_resume_variables
 
 from .. import crud, schemas, models
 from ..database import get_db
-from ..pdf_generator import WEASYPRINT_AVAILABLE, generate_pdf_from_html
+from ..pdf_generator import PLAYWRIGHT_AVAILABLE, generate_pdf_from_html
 from ..services.ai_service import ai_service
 from ..routers.auth import get_current_active_user
 
@@ -319,12 +319,12 @@ def generate_resume_pdf(resume_id: int, db: Session = Depends(get_db)):
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
     
-    if not WEASYPRINT_AVAILABLE:
+    if not PLAYWRIGHT_AVAILABLE:
         return JSONResponse(
             status_code=503,
             content={
                 "error": "PDF generation is not available",
-                "message": "WeasyPrint is not installed. To enable PDF generation, please install system dependencies.",
+                "message": "Playwright is not installed. To enable PDF generation, please install Playwright.",
                 "instructions": {
                     "macOS": "brew install cairo pango gdk-pixbuf libffi && pip install weasyprint",
                     "Ubuntu/Debian": "apt-get install python3-cffi python3-brotli libpango-1.0-0 libpangoft2-1.0-0 && pip install weasyprint",

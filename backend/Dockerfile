@@ -5,19 +5,11 @@ FROM python:3.11-slim AS base
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-# System dependencies for WeasyPrint and general build
+# System dependencies for Playwright
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      build-essential \
-      libpango-1.0-0 \
-      libcairo2 \
-      libffi-dev \
-      libgdk-pixbuf-2.0-0 \
-      libxml2 \
-      libxslt1.1 \
-      shared-mime-info \
-      fonts-liberation \
-      curl && \
+      curl \
+      ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 # Install uv
@@ -28,6 +20,9 @@ WORKDIR /app
 # Install Python deps with uv
 COPY backend/requirements.txt ./backend/requirements.txt
 RUN uv pip install --system --no-cache -r backend/requirements.txt
+
+# Install Playwright browsers
+RUN python -m playwright install --with-deps chromium
 
 # Copy source
 COPY backend/ ./backend/
