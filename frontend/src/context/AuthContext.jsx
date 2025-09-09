@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('access_token'));
+  const [redirectPath, setRedirectPath] = useState(null);
 
   useEffect(() => {
     // Check if user is logged in on app start
@@ -67,7 +68,12 @@ export const AuthProvider = ({ children }) => {
         setToken(data.access_token);
         setUser(data.user);
         localStorage.setItem('access_token', data.access_token);
-        return { success: true };
+        
+        // Return redirect path for post-login navigation
+        const savedPath = redirectPath;
+        setRedirectPath(null);
+        
+        return { success: true, redirectPath: savedPath };
       } else {
         const error = await response.json();
         return { success: false, error: error.detail || 'Login failed' };
@@ -128,8 +134,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = async () => {
+  const logout = async (saveCurrentPath = true) => {
     try {
+      // Save current path for redirect after login
+      if (saveCurrentPath && window.location.pathname !== '/') {
+        setRedirectPath(window.location.pathname + window.location.search);
+      }
+      
       if (token) {
         await api.request('/api/auth/logout', { method: 'POST' });
       }
@@ -174,6 +185,7 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     isAuthenticated: !!user,
+    redirectPath,
     login,
     register,
     microsoftSSO,

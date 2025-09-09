@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Login.css';
 
-function Login() {
-  const { login, register, microsoftSSO, isAuthenticated, loading } = useAuth();
+function Login({ showRedirectMessage = false }) {
+  const { login, register, microsoftSSO, isAuthenticated, loading, redirectPath } = useAuth();
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
@@ -20,7 +21,8 @@ function Login() {
 
   // Redirect if already authenticated
   if (isAuthenticated) {
-    return <Navigate to="/proposals" replace />;
+    const targetPath = redirectPath || "/proposals";
+    return <Navigate to={targetPath} replace />;
   }
 
   if (loading) {
@@ -40,7 +42,11 @@ function Login() {
         result = await register(formData);
       }
 
-      if (!result.success) {
+      if (result.success) {
+        // Navigate to saved path or default
+        const targetPath = result.redirectPath || "/proposals";
+        navigate(targetPath, { replace: true });
+      } else {
         setError(result.error);
       }
     } catch (err) {
@@ -72,6 +78,11 @@ function Login() {
 
   return (
     <div className="auth-container">
+      {showRedirectMessage && (
+        <div className="redirect-message">
+          <p>Your session expired. Please log in again to continue where you left off.</p>
+        </div>
+      )}
       <div className="auth-card">
         <div className="auth-header">
           <h1>SherpaGCM</h1>

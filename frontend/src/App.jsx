@@ -13,7 +13,7 @@ import Login from './pages/Login';
 import './App.css';
 
 function AppContent() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, redirectPath } = useAuth();
 
   if (loading) {
     return (
@@ -24,7 +24,7 @@ function AppContent() {
   }
 
   if (!isAuthenticated) {
-    return <Login />;
+    return <Login showRedirectMessage={!!redirectPath} />;
   }
 
   return (
