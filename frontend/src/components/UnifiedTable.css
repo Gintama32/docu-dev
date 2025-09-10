@@ -204,25 +204,31 @@
 }
 
 .unified-table .project-col {
-  width: 60%;
+  width: 70%; /* Give more space to main content */
 }
 
 .unified-table .details-col {
-  width: 40%;
+  width: 25%; /* Compress details column */
 }
 
-/* Consolidated details styling */
+/* Top align all table cells */
+.unified-table td {
+  vertical-align: top !important;
+}
+
+/* Consolidated details styling - more compact */
 .consolidated-details {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 13px;
+  gap: 3px;
+  font-size: 12px;
 }
 
 .detail-row {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
+  gap: 4px;
+  line-height: 1.3;
 }
 
 .detail-label {
@@ -230,10 +236,17 @@
   color: var(--text-secondary);
   min-width: fit-content;
   white-space: nowrap;
+  font-size: 11px;
 }
 
 .details-cell .detail-row {
-  margin-bottom: 2px;
+  margin-bottom: 1px;
+}
+
+/* Make details column content more compact */
+.details-cell {
+  padding: 8px !important;
+  font-size: 12px;
 }
 
 /* Resumes-specific columns */

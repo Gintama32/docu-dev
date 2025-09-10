@@ -13,7 +13,7 @@ function ExperienceSelectionTab({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClient, setSelectedClient] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
-  const [viewMode, setViewMode] = useState('table'); // Always table view
+  // Removed viewMode - always use table view
 
   // Get all unique tags from experiences
   const allTags = useMemo(() => {
@@ -65,22 +65,6 @@ function ExperienceSelectionTab({
           <div className="header-text">
             <h3>Select Experiences for Resume</h3>
             <p>Choose relevant experiences to include in your resume. Use filters to find specific projects.</p>
-          </div>
-          <div className="view-toggle">
-            <button 
-              className={`view-toggle-btn ${viewMode === 'cards' ? 'active' : ''}`}
-              onClick={() => setViewMode('cards')}
-              title="Card View"
-            >
-              ⊞
-            </button>
-            <button 
-              className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
-              onClick={() => setViewMode('table')}
-              title="Table View"
-            >
-              ☰
-            </button>
           </div>
         </div>
       </div>
