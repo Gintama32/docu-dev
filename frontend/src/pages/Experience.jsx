@@ -162,30 +162,58 @@ function Experience() {
       </div>
 
       <div className="proposals-list">
-        <div className="proposals-table">
-          <div className="table-header">
-            <div>Name</div>
-            <div>Client</div>
-            <div>Location</div>
-            <div>Start</div>
-            <div>End</div>
-            <div>Actions</div>
-          </div>
-          {items.map((item) => (
-            <div key={item.id} className="table-row">
-              <div className="proposal-name">
-                <strong>{item.project_name}</strong>
-              </div>
-              <div>{clientMap[item.client_id] || '-'}</div>
-              <div>{item.location || '-'}</div>
-              <div>{item.date_started || '-'}</div>
-              <div>{item.date_completed || '-'}</div>
-              <div className="actions">
-                <button className="button-secondary-small" onClick={() => onEdit(item)}>Edit</button>
-                <button className="button-danger-small" onClick={() => onDelete(item)}>Delete</button>
-              </div>
+        <div className="unified-table-container">
+          <div className="unified-grid-table">
+            <div className="unified-grid-header experience-grid">
+              <div>Project Name</div>
+              <div>Details</div>
+              <div>Duration</div>
+              <div>Actions</div>
             </div>
-          ))}
+            {items.map((item) => (
+              <div key={item.id} className="unified-grid-row experience-grid">
+                <div className="table-primary-text">
+                  <strong>{item.project_name}</strong>
+                  {item.project_description && (
+                    <div className="project-description">
+                      {item.project_description.length > 100 
+                        ? item.project_description.substring(0, 100) + '...'
+                        : item.project_description
+                      }
+                    </div>
+                  )}
+                </div>
+                <div className="table-secondary-text">
+                  <div className="experience-details">
+                    {clientMap[item.client_id] && (
+                      <div className="detail-item">
+                        <span className="detail-label">Client:</span> {clientMap[item.client_id]}
+                      </div>
+                    )}
+                    {item.location && (
+                      <div className="detail-item">
+                        <span className="detail-label">Location:</span> {item.location}
+                      </div>
+                    )}
+                    {item.project_value && (
+                      <div className="detail-item">
+                        <span className="detail-label">Value:</span> ${parseFloat(item.project_value).toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="table-secondary-text">
+                  <div className="date-range">
+                    {item.date_started || 'N/A'} - {item.date_completed || 'Ongoing'}
+                  </div>
+                </div>
+                <div className="table-actions">
+                  <button className="table-action-edit" onClick={() => onEdit(item)}>Edit</button>
+                  <button className="table-action-delete" onClick={() => onDelete(item)}>Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

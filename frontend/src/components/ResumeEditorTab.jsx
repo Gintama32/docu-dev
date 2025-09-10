@@ -16,7 +16,7 @@ function ResumeEditorTab({
 }) {
   const toast = useToast();
   const iframeRef = useRef(null);
-  const [showEditor, setShowEditor] = useState(false);
+  const [showEditor, setShowEditor] = useState(false); // Default to preview mode
   const [templates, setTemplates] = useState([]);
 
   // The iframe content is now handled via srcDoc prop, no manual updates needed
@@ -91,17 +91,12 @@ function ResumeEditorTab({
   return (
     <div className="resume-editor-container">
       <div className="resume-editor-header">
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button 
-            type="button" 
-            className="button-primary button-with-icon"
-            onClick={handleUpdateResume}
-            title="Regenerate resume content with current experiences and personalizations"
-          >
-            <RefreshIcon style={{ fontSize: '20px' }} />
-            Regenerate
-          </button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <label htmlFor="template-select" style={{ fontWeight: '500', color: 'var(--text-primary)' }}>
+            Template:
+          </label>
           <select
+            id="template-select"
             value={editingResume?.template_id || ''}
             onChange={async (e) => {
               const tplId = e.target.value ? Number(e.target.value) : null;
@@ -140,16 +135,28 @@ function ResumeEditorTab({
               <option key={t.id} value={t.id}>{t.name}</option>
             ))}
           </select>
-        </div>
-        <div className="resume-editor-actions">
           <button 
             type="button" 
-            className="button-download-pdf-icon"
-            onClick={handleDownloadPDF}
-            title="Download as PDF"
+            className="button-primary button-with-icon"
+            onClick={handleUpdateResume}
+            title="Regenerate resume content with current experiences and personalizations"
           >
-            <PictureAsPdfIcon />
+            <RefreshIcon style={{ fontSize: '20px' }} />
+            Regenerate
           </button>
+        </div>
+        <div className="resume-editor-actions" style={{display: 'flex', flexDirection: 'row', gap: '8px', alignItems: 'center'}}>
+          <button 
+            type="button" 
+            className="button-primary"
+            onClick={handleDownloadPDF}
+            title="Download resume as PDF"
+          >
+            <PictureAsPdfIcon style={{ fontSize: '16px', marginRight: '6px' }} />
+            Download PDF
+          </button>
+          {/* Hidden for now - advanced users only */}
+          {/* 
           <button 
             type="button" 
             className={`button-toggle ${!showEditor ? 'active' : ''}`}
@@ -164,10 +171,12 @@ function ResumeEditorTab({
           >
             Edit HTML
           </button>
+          */}
         </div>
       </div>
 
-      {!showEditor ? (
+      {/* Always show preview since editor buttons are hidden */}
+      {true ? (
         <div className="resume-preview-container">
           <iframe
             ref={iframeRef}
@@ -184,29 +193,7 @@ function ResumeEditorTab({
             }}
           />
         </div>
-      ) : (
-        <form onSubmit={handleSaveResumeChanges} className="resume-edit-form">
-          <div className="form-group">
-            <label>
-              Edit HTML Content:
-              <textarea
-                value={editedResumeContent}
-                onChange={(e) => setEditedResumeContent(e.target.value)}
-                rows="25"
-                style={{
-                  fontFamily: 'monospace',
-                  fontSize: '13px',
-                  lineHeight: '1.5',
-                }}
-              />
-            </label>
-          </div>
-          <div className="form-actions">
-            <button type="submit" className="button-primary">Save</button>
-            <button type="button" className="button-secondary" onClick={onClose}>Close</button>
-          </div>
-        </form>
-      )}
+      ) : null /* HTML Editor hidden for regular users */}
     </div>
   );
 }

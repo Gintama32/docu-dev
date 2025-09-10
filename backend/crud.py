@@ -67,11 +67,17 @@ def get_clients(db: Session, skip: int = 0, limit: int = 100):
 
 
 def create_client(db: Session, client: schemas.ClientCreate):
-    db_client = models.Client(**client.dict())
-    db.add(db_client)
-    db.commit()
-    db.refresh(db_client)
-    return db_client
+    try:
+        # Use model_dump() for Pydantic v2 compatibility
+        client_data = client.model_dump() if hasattr(client, 'model_dump') else client.dict()
+        db_client = models.Client(**client_data)
+        db.add(db_client)
+        db.commit()
+        db.refresh(db_client)
+        return db_client
+    except Exception as e:
+        db.rollback()
+        raise e
 
 
 def get_contacts(db: Session, skip: int = 0, limit: int = 100):

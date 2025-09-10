@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useCallback, useEffect, useRef, useState } from 'react';
+import './Toast.css';
 
 const ToastContext = createContext(null);
 
@@ -10,38 +11,22 @@ export function useToast() {
 
 function ToastContainer({ toasts, dismiss }) {
   return (
-    <div style={{
-      position: 'fixed',
-      top: 16,
-      right: 16,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 10,
-      zIndex: 1000,
-    }}
+    <div className="toast-container"
     >
       {toasts.map((t) => (
         <div
           key={t.id}
           role="status"
-          style={{
-            minWidth: 260,
-            maxWidth: 420,
-            padding: '10px 12px',
-            borderRadius: 8,
-            background: t.type === 'error' ? '#fee' : t.type === 'success' ? '#efe' : t.type === 'warning' ? '#fff7e6' : 'var(--background-secondary)',
-            border: '1px solid var(--border-light)',
-            color: 'var(--text-primary)'
-          }}
+          className={`toast-item ${t.type || 'info'}`}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 8 }}>
-            <div style={{ fontWeight: 600, marginRight: 8 }}>
+          <div className="toast-header">
+            <div className="toast-title">
               {t.title || (t.type === 'error' ? 'Error' : t.type === 'success' ? 'Success' : t.type === 'warning' ? 'Warning' : 'Info')}
             </div>
-            <button onClick={() => dismiss(t.id)} className="button-secondary" style={{ padding: '2px 6px' }}>×</button>
+            <button onClick={() => dismiss(t.id)} className="toast-close">×</button>
           </div>
           {t.message && (
-            <div style={{ marginTop: 6, color: 'var(--text-secondary)' }}>{t.message}</div>
+            <div className="toast-message">{t.message}</div>
           )}
         </div>
       ))}

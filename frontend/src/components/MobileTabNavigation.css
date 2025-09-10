@@ -1,0 +1,232 @@
+/* Mobile Tab Navigation Styles */
+.mobile-tab-navigation {
+  display: none; /* Hidden by default, shown on mobile */
+  background: var(--background-primary);
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 16px;
+}
+
+/* Progress indicator */
+.tab-progress {
+  margin-bottom: 16px;
+}
+
+.progress-bar {
+  height: 4px;
+  background: var(--border-light);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-color);
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+  display: block;
+}
+
+/* Tab header */
+.tab-header-mobile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.tab-title-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.current-tab-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resume-name-mobile {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Navigation controls */
+.tab-nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tab-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  background: var(--background-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-nav-btn:hover:not(:disabled) {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.tab-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.nav-icon {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Tab dots */
+.tab-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.tab-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.tab-dot.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.tab-dot.completed {
+  background: var(--color-success);
+  border-color: var(--color-success);
+}
+
+/* Scrollable tabs (fallback) */
+.mobile-tabs-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -16px;
+  padding: 0 16px;
+}
+
+.mobile-tabs-container {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 4px;
+  min-width: max-content;
+}
+
+.mobile-tab-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--background-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  white-space: nowrap;
+}
+
+.mobile-tab-btn.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.tab-number {
+  font-size: 12px;
+  font-weight: 600;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: currentColor;
+  color: var(--background-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-tab-btn.active .tab-number {
+  background: white;
+  color: var(--primary-color);
+}
+
+.tab-label {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Desktop: Hide mobile navigation completely */
+@media (min-width: 769px) {
+  .mobile-tab-navigation {
+    display: none !important;
+  }
+}
+
+/* Show on mobile */
+@media (max-width: 768px) {
+  .mobile-tab-navigation {
+    display: block;
+  }
+  
+  /* Hide regular tabs on mobile */
+  .resume-tabs-header,
+  .tabs-header {
+    display: none;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  .tab-header-mobile {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .tab-title-section {
+    text-align: center;
+  }
+  
+  .tab-nav-buttons {
+    justify-content: center;
+  }
+}

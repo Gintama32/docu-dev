@@ -38,12 +38,28 @@ function Sidebar() {
   };
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+    const newState = !isMobileMenuOpen;
+    setIsMobileMenuOpen(newState);
+    
+    // Prevent body scroll when menu is open on mobile
+    if (newState) {
+      document.body.classList.add('mobile-menu-open');
+    } else {
+      document.body.classList.remove('mobile-menu-open');
+    }
   };
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
+    document.body.classList.remove('mobile-menu-open');
   };
+
+  // Clean up body class on unmount
+  useEffect(() => {
+    return () => {
+      document.body.classList.remove('mobile-menu-open');
+    };
+  }, []);
 
   return (
     <>
@@ -108,6 +124,15 @@ function Sidebar() {
           </ul>
           <h3>Data</h3>
           <ul>
+            <li>
+              <NavLink 
+                to="/clients" 
+                className={({ isActive }) => isActive ? 'active' : ''}
+                onClick={closeMobileMenu}
+              >
+                Clients
+              </NavLink>
+            </li>
             <li>
               <NavLink 
                 to="/experience" 

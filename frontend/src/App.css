@@ -775,6 +775,124 @@ body {
   width: 100%; /* Explicitly set width to 100% of available space */
 }
 
+/* Desktop vs Mobile Resume Views - Desktop First */
+.desktop-resume-table {
+  display: block;
+}
+
+.mobile-resume-view {
+  display: none;
+}
+
+/* Desktop-specific optimizations (ensure they don't get overridden) */
+@media (min-width: 769px) {
+  /* Force desktop table view */
+  .desktop-resume-table {
+    display: block !important;
+  }
+  
+  .mobile-resume-view {
+    display: none !important;
+  }
+  
+  /* Ensure desktop layouts aren't affected by mobile optimizations */
+  .page-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 16px !important;
+  }
+  
+  /* Restore desktop button sizing */
+  button {
+    min-height: auto !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+  }
+  
+  /* Restore desktop input sizing */
+  input, select, textarea {
+    min-height: auto !important;
+    font-size: 14px !important;
+    padding: 8px 12px !important;
+  }
+  
+  /* Ensure desktop filters and layouts work properly */
+  .filters-row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: end !important;
+    gap: 16px !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .filter-group {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 150px !important;
+  }
+  
+  .filter-group label {
+    font-weight: 500 !important;
+    margin-bottom: 4px !important;
+    font-size: 14px !important;
+  }
+  
+  /* Desktop table actions should be horizontal */
+  .table-actions {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+  }
+  
+  /* Ensure unified table remains desktop-optimized */
+  .unified-table-container {
+    overflow-x: visible !important;
+  }
+  
+  .unified-grid-table {
+    display: grid !important;
+  }
+  
+  .unified-grid-header,
+  .unified-grid-row {
+    display: grid !important;
+    grid-template-columns: var(--grid-columns, 2fr 1fr 1fr 1fr) !important;
+    align-items: center !important;
+    padding: 12px 16px !important;
+  }
+  
+  /* Desktop modal sizing */
+  .modal-content {
+    width: auto !important;
+    max-width: 500px !important;
+    max-height: 90vh;
+    margin: auto !important;
+  }
+  
+  /* Desktop content padding */
+  .content {
+    padding: 30px !important;
+  }
+  
+  /* Ensure desktop sidebar is always visible */
+  .sidebar {
+    position: relative !important;
+    left: 0 !important;
+    width: 280px !important;
+    height: 100vh !important;
+  }
+  
+  /* Hide mobile elements on desktop */
+  .mobile-menu-button {
+    display: none !important;
+  }
+  
+  .mobile-menu-overlay {
+    display: none !important;
+  }
+}
+
 .content h2 {
     color: var(--text-primary);
 }
@@ -993,12 +1111,11 @@ body {
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s ease;
-  display: flex;
+  display: inline-flex !important;
   align-items: center;
   justify-content: center;
   min-width: 38px;
   height: 38px;
-  margin-right: 8px;
 }
 
 .button-download-pdf-icon:hover {
@@ -1039,6 +1156,42 @@ body {
   background: #45a049;
   border-color: #45a049;
   box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
+}
+
+/* Toggle Buttons (Preview/Edit HTML) */
+.button-toggle {
+  background: var(--button-secondary-background);
+  color: var(--button-secondary-text);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  white-space: nowrap; /* Prevent text wrapping */
+  min-width: fit-content;
+}
+
+.button-toggle:hover {
+  background: var(--button-secondary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.button-toggle.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.button-toggle.active:hover {
+  background: var(--button-primary-hover);
+  border-color: var(--button-primary-hover);
 }
 
 /* Proposal List Styles */
@@ -2632,6 +2785,85 @@ body {
   font-size: 14px;
 }
 
+/* Clients Grid Layout */
+.clients-grid {
+  display: grid !important;
+  grid-template-columns: 2fr 1.5fr 1.2fr 1fr 120px !important;
+  align-items: center !important;
+}
+
+.clients-grid .table-actions {
+  justify-content: flex-end !important;
+}
+
+/* Experience Grid Layout */
+.experience-grid {
+  display: grid !important;
+  grid-template-columns: 2fr 1.5fr 1fr 120px !important;
+  align-items: flex-start !important;
+  gap: 16px !important;
+}
+
+.experience-grid .table-actions {
+  justify-content: flex-end !important;
+  align-self: center !important;
+}
+
+/* Experience Details Styling */
+.project-description {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.experience-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  min-width: fit-content;
+}
+
+.date-range {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Mobile responsive for experience grid */
+@media (max-width: 768px) {
+  .experience-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  
+  .experience-grid .table-actions {
+    justify-content: flex-start !important;
+    margin-top: 8px;
+  }
+  
+  .experience-details {
+    margin-top: 8px;
+  }
+  
+  .date-range {
+    margin-top: 4px;
+    font-weight: 500;
+  }
+}
+
 /* Table Styles */
 .table-container {
   background: var(--background-primary);
@@ -2928,17 +3160,17 @@ body {
     gap: 16px;
   }
   
-  .filters-row {
+  /* Only apply mobile filter layout to specific mobile views */
+  .mobile-resume-view .filters-row,
+  .mobile-view .filters-row {
     flex-direction: column;
     align-items: stretch;
   }
   
-  .filter-group {
+  /* Scope mobile input changes to mobile views only */
+  .mobile-view .filter-group input[type="text"] {
     min-width: auto;
-  }
-  
-  .filter-group input[type="text"] {
-    min-width: auto;
+    width: 100%;
   }
   
   .table-container {
@@ -2997,9 +3229,18 @@ body {
 
 /* Main Mobile Responsiveness */
 @media (max-width: 768px) {
+  /* Prevent body scroll when menu is open */
+  body.mobile-menu-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+
   /* Show mobile menu button */
   .mobile-menu-button {
     display: block;
+    min-height: 44px; /* iOS recommended touch target */
+    min-width: 44px; /* iOS recommended touch target */
   }
   
   /* App layout adjustments */
@@ -3014,29 +3255,97 @@ body {
     left: -300px; /* Hide off-screen with extra margin */
     width: 280px;
     height: 100vh;
-    z-index: 9997; /* Higher z-index, but below button and overlay */
+    z-index: 9998; /* Below overlay and button */
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow-y: auto;
     box-shadow: var(--shadow-lg);
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   }
   
   /* Show sidebar when mobile menu is open */
   .sidebar.sidebar-mobile-open {
     left: 0 !important;
   }
+
+  /* Better touch targets for sidebar links on mobile */
+  .sidebar nav ul li a {
+    padding: 16px 24px; /* Larger touch targets */
+    font-size: 16px; /* Larger text for readability */
+    display: block;
+    width: 100%;
+    position: relative;
+    z-index: 1; /* Ensure links are clickable */
+  }
+
+  /* Sidebar section headers */
+  .sidebar nav h3 {
+    padding: 12px 24px 8px 24px;
+    font-size: 14px;
+  }
   
   /* Adjust content for mobile */
   .content {
-    padding: 80px 16px 16px 16px; /* Top padding for mobile menu button */
+    padding: 70px 16px 16px 16px; /* Top padding for mobile menu button */
     width: 100%;
+    min-height: calc(100vh - 70px); /* Ensure full height */
   }
   
-  /* Mobile-specific content adjustments */
-  .page-header {
+  /* Mobile-specific content adjustments - only for pages that need it */
+  .mobile-resume-view .page-header,
+  .mobile-view .page-header {
     flex-direction: column;
     align-items: stretch;
     gap: 16px;
   }
+  
+  /* Ensure other page headers stay horizontal on mobile when not in mobile view */
+  .page-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Better mobile table handling - scoped to avoid desktop interference */
+  .mobile-resume-view .unified-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Mobile-friendly buttons - only on mobile specific elements */
+  .mobile-resume-view button,
+  .mobile-tab-navigation button,
+  .sidebar.sidebar-mobile-open button {
+    min-height: 44px; /* iOS recommended touch target */
+    padding: 12px 16px;
+  }
+
+  /* Better form inputs on mobile - only specific mobile elements */
+  .mobile-resume-view input,
+  .mobile-resume-view select,
+  .mobile-resume-view textarea {
+    min-height: 44px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 12px;
+  }
+
+  /* Mobile-friendly modals - only on mobile screens */
+  .modal-content {
+    width: 95%;
+    max-width: 95vw;
+    max-height: 85vh;
+    margin: 20px;
+    padding: 16px;
+  }
+
+  /* Show/hide desktop vs mobile resume views */
+  .desktop-resume-table {
+    display: none !important;
+  }
+  
+  .mobile-resume-view {
+    display: block !important;
+  }
+}
   
   .page-header .actions {
     justify-content: flex-start;
@@ -3072,15 +3381,16 @@ body {
     padding: 16px;
   }
   
-  /* Filters and search bars */
-  .proposals-filters,
-  .filters-row {
+  /* Filters and search bars - only for mobile-specific elements */
+  .mobile-view .proposals-filters,
+  .mobile-view .filters-row {
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
   }
   
-  .filter-group {
+  /* Specific mobile filter styling */
+  .mobile-view .filter-group {
     min-width: auto;
     width: 100%;
   }

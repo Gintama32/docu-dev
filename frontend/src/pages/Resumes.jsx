@@ -10,6 +10,8 @@ import Tabs from '../components/Tabs';
 import ExperienceSelectionTab from '../components/ExperienceSelectionTab';
 import PersonalizeContentTab from '../components/PersonalizeContentTab';
 import ResumeEditorTab from '../components/ResumeEditorTab';
+import MobileResumeList from '../components/MobileResumeList';
+import MobileTabNavigation from '../components/MobileTabNavigation';
 import '../components/UnifiedTable.css';
 
 function Resumes() {
@@ -488,6 +490,7 @@ function Resumes() {
             </div>
           </div>
           
+          {/* Desktop Tab Headers */}
           <div className="resume-tabs-header">
             <div className="tabs-header">
               {resumeTabs.map((tab) => (
@@ -501,6 +504,14 @@ function Resumes() {
               ))}
             </div>
           </div>
+          
+          {/* Mobile Tab Navigation */}
+          <MobileTabNavigation
+            tabs={resumeTabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            resumeName={getDisplayName(selectedResume)}
+          />
         </div>
 
         <div className="resume-builder-content">
@@ -571,8 +582,9 @@ function Resumes() {
         Showing {filteredResumes.length} of {resumes.length} resumes
       </div>
 
-      {/* Resumes Table */}
-      <div className="unified-table-container">
+      {/* Desktop Table View */}
+      <div className="desktop-resume-table">
+        <div className="unified-table-container">
         <div className="unified-grid-table">
           <div className="unified-grid-header resumes-grid">
             <div>Name</div>
@@ -648,6 +660,20 @@ function Resumes() {
             ))
           )}
         </div>
+        </div>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="mobile-resume-view">
+        <MobileResumeList
+          resumes={resumes}
+          filteredResumes={filteredResumes}
+          onEditResume={handleEditResume}
+          onDeleteResume={setConfirmDeleteId}
+          onDownloadPdf={handleGeneratePDF}
+          formatDate={formatDate}
+          getDisplayName={getDisplayName}
+        />
       </div>
 
       {/* Create Resume Modal */}
