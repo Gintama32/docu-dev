@@ -224,48 +224,90 @@ function Experience() {
           </div>
           <form onSubmit={onSubmit} className="proposal-form">
             <div className="modal-body">
-              <div className="form-grid">
-                <div className="form-group full-width">
-                  <label>Project Name</label>
-                  <input required value={form.project_name} onChange={e=>setForm(f=>({...f, project_name: e.target.value}))} />
+              <div className="experience-form-layout">
+                {/* Primary Content Section */}
+                <div className="primary-fields">
+                  <div className="form-group">
+                    <label>Project Name *</label>
+                    <input 
+                      required 
+                      value={form.project_name} 
+                      onChange={e=>setForm(f=>({...f, project_name: e.target.value}))}
+                      placeholder="Enter the project name"
+                    />
+                  </div>
+                  
+                  <div className="form-group description-group">
+                    <label>Description</label>
+                    <textarea 
+                      rows="12" 
+                      value={form.project_description} 
+                      onChange={e=>setForm(f=>({...f, project_description: e.target.value}))}
+                      placeholder="Describe the project scope, your role, key achievements, technologies used, impact, etc. This is the main content that will appear in resumes."
+                      className="description-textarea"
+                    />
+                  </div>
                 </div>
-                <div className="form-group full-width">
-                  <label>Description</label>
-                  <textarea rows="3" value={form.project_description} onChange={e=>setForm(f=>({...f, project_description: e.target.value}))} />
-                </div>
-                <div className="form-group">
-                  <label>Value (USD)</label>
-                  <input type="number" step="0.01" value={form.project_value} onChange={e=>setForm(f=>({...f, project_value: e.target.value}))} />
-                </div>
-                <div className="form-group">
-                  <label>Start Date</label>
-                  <input type="date" value={form.date_started} onChange={e=>setForm(f=>({...f, date_started: e.target.value}))} />
-                </div>
-                <div className="form-group">
-                  <label>End Date</label>
-                  <input type="date" value={form.date_completed} onChange={e=>setForm(f=>({...f, date_completed: e.target.value}))} />
-                </div>
-                <div className="form-group">
-                  <label>Location</label>
-                  <input value={form.location} onChange={e=>setForm(f=>({...f, location: e.target.value}))} />
-                </div>
-                <div className="form-group full-width">
-                  <label>Tags (comma separated)</label>
-                  <input value={form.tags} onChange={e=>setForm(f=>({...f, tags: e.target.value}))} />
-                </div>
-                <div className="form-group">
-                  <label>Client</label>
-                  <select required value={form.client_id} onChange={e=>setForm(f=>({...f, client_id: e.target.value}))}>
-                    <option value="">Select client…</option>
-                    {clients.map(c => (<option key={c.id} value={c.id}>{c.client_name}</option>))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Contact (optional)</label>
-                  <select value={form.contact_id} onChange={e=>setForm(f=>({...f, contact_id: e.target.value}))}>
-                    <option value="">None</option>
-                    {contacts.map(ct => (<option key={ct.id} value={ct.id}>{ct.contact_name}</option>))}
-                  </select>
+
+                {/* Secondary Fields - Compact Layout */}
+                <div className="secondary-fields">
+                  <div className="compact-row">
+                    <div className="form-group">
+                      <label>Client *</label>
+                      <select required value={form.client_id} onChange={e=>setForm(f=>({...f, client_id: e.target.value}))}>
+                        <option value="">Select client…</option>
+                        {clients.map(c => (<option key={c.id} value={c.id}>{c.client_name}</option>))}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Contact</label>
+                      <select value={form.contact_id} onChange={e=>setForm(f=>({...f, contact_id: e.target.value}))}>
+                        <option value="">None</option>
+                        {contacts.map(ct => (<option key={ct.id} value={ct.id}>{ct.contact_name}</option>))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="compact-row">
+                    <div className="form-group">
+                      <label>Start Date</label>
+                      <input type="date" value={form.date_started} onChange={e=>setForm(f=>({...f, date_started: e.target.value}))} />
+                    </div>
+                    <div className="form-group">
+                      <label>End Date</label>
+                      <input type="date" value={form.date_completed} onChange={e=>setForm(f=>({...f, date_completed: e.target.value}))} />
+                    </div>
+                  </div>
+
+                  <div className="compact-row">
+                    <div className="form-group">
+                      <label>Location</label>
+                      <input 
+                        value={form.location} 
+                        onChange={e=>setForm(f=>({...f, location: e.target.value}))}
+                        placeholder="City, State/Country" 
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Value (USD)</label>
+                      <input 
+                        type="number" 
+                        step="0.01" 
+                        value={form.project_value} 
+                        onChange={e=>setForm(f=>({...f, project_value: e.target.value}))}
+                        placeholder="Project value"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Tags</label>
+                    <input 
+                      value={form.tags} 
+                      onChange={e=>setForm(f=>({...f, tags: e.target.value}))}
+                      placeholder="hospital, renovation, infrastructure (comma separated)"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
