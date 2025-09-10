@@ -2,10 +2,10 @@
 
 FROM node:20-alpine AS build
 WORKDIR /app
-COPY frontend/package*.json ./
-RUN npm ci
+COPY frontend/package.json frontend/yarn.lock ./
+RUN yarn install --frozen-lockfile
 COPY frontend/ ./
-RUN npm run build
+RUN yarn build
 
 FROM nginx:alpine
 # Copy static build assets
