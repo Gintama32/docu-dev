@@ -112,10 +112,15 @@ const ReorderModal = ({ isOpen, onClose, experiences, onReorder }) => {
                 
                 <div className="experience-info">
                   <div className="experience-name">
-                    {exp.project_name || 'Untitled Experience'}
+                    {exp.experience?.project_name || exp.project_name || 'Untitled Experience'}
                   </div>
                   <div className="experience-meta">
                     Position {index + 1} of {orderedExperiences.length}
+                    {(exp.experience?.client || exp.client) && (
+                      <span className="client-info">
+                        • {exp.experience?.client?.client_name || exp.client?.client_name}
+                      </span>
+                    )}
                   </div>
                 </div>
                 
