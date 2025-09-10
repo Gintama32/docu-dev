@@ -198,6 +198,44 @@
 .grid-7-cols { grid-template-columns: 1.5fr 0.8fr 1fr 1fr 1fr 1fr 120px; }
 .grid-8-cols { grid-template-columns: 1.5fr 0.8fr 1fr 0.8fr 0.8fr 1fr 1fr 120px; }
 
+/* Experience Selection Table Layout */
+.unified-table .checkbox-col {
+  width: 60px;
+}
+
+.unified-table .project-col {
+  width: 60%;
+}
+
+.unified-table .details-col {
+  width: 40%;
+}
+
+/* Consolidated details styling */
+.consolidated-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  min-width: fit-content;
+  white-space: nowrap;
+}
+
+.details-cell .detail-row {
+  margin-bottom: 2px;
+}
+
 /* Resumes-specific columns */
 .resumes-grid { grid-template-columns: 2fr 1.2fr 1fr 140px; }
 

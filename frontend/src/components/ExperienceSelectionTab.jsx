@@ -13,7 +13,7 @@ function ExperienceSelectionTab({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClient, setSelectedClient] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
-  const [viewMode, setViewMode] = useState('table'); // 'cards' or 'table'
+  const [viewMode, setViewMode] = useState('table'); // Always table view
 
   // Get all unique tags from experiences
   const allTags = useMemo(() => {
@@ -169,7 +169,7 @@ function ExperienceSelectionTab({
         </div>
       </div>
 
-      {/* Experience Cards */}
+      {/* Experience Table */}
       {filteredExperiences.length === 0 ? (
         <div className="no-experiences">
           {allExperiences.length === 0 ? (
@@ -178,76 +178,6 @@ function ExperienceSelectionTab({
             <p>No experiences match your current filters. Try adjusting your search criteria.</p>
           )}
         </div>
-      ) : viewMode === 'cards' ? (
-        <div className="experience-grid">
-          {filteredExperiences.map((exp) => (
-            <div key={exp.id} className={`experience-card ${selectedExperiences.includes(exp.id) ? 'selected' : ''}`}>
-              <div className="card-header">
-                <input
-                  type="checkbox"
-                  id={`exp-${exp.id}`}
-                  checked={selectedExperiences.includes(exp.id)}
-                  onChange={() => handleExperienceSelection(exp.id)}
-                  className="experience-checkbox"
-                />
-                <label htmlFor={`exp-${exp.id}`} className="project-title">
-                  {exp.project_name}
-                </label>
-              </div>
-
-              <div className="card-content">
-                <div className="project-description">
-                  {exp.project_description}
-                </div>
-
-                <div className="project-meta">
-                  <div className="meta-row">
-                    <span className="meta-label">Client:</span>
-                    <span className="meta-value">
-                      {clients.find(c => c.id === exp.client_id)?.client_name || 'N/A'}
-                    </span>
-                  </div>
-
-                  {(exp.date_started || exp.date_completed) && (
-                    <div className="meta-row">
-                      <span className="meta-label">Duration:</span>
-                      <span className="meta-value">
-                        {formatDate(exp.date_started)} - {formatDate(exp.date_completed)}
-                      </span>
-                    </div>
-                  )}
-
-                  {exp.location && (
-                    <div className="meta-row">
-                      <span className="meta-label">Location:</span>
-                      <span className="meta-value">{exp.location}</span>
-                    </div>
-                  )}
-
-                  {exp.project_value && (
-                    <div className="meta-row">
-                      <span className="meta-label">Value:</span>
-                      <span className="meta-value project-value">{formatValue(exp.project_value)}</span>
-                    </div>
-                  )}
-
-                  {exp.tags && (
-                    <div className="meta-row">
-                      <span className="meta-label">Tags:</span>
-                      <div className="tags-list">
-                        {exp.tags.split(',').map((tag, index) => (
-                          <span key={index} className="tag-pill">
-                            {tag.trim()}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
       ) : (
         <div className="unified-table-container">
           <table className="unified-table">
@@ -255,9 +185,7 @@ function ExperienceSelectionTab({
               <tr>
                 <th className="checkbox-col">Select</th>
                 <th className="project-col">Project & Description</th>
-                <th className="client-col">Client</th>
-                <th className="location-col">Location</th>
-                <th className="value-col">Value</th>
+                <th className="details-col">Details</th>
               </tr>
             </thead>
             <tbody>
@@ -302,14 +230,24 @@ function ExperienceSelectionTab({
                       </div>
                     </div>
                   </td>
-                  <td className="client-cell">
-                    {clients.find(c => c.id === exp.client_id)?.client_name || 'N/A'}
-                  </td>
-                  <td className="location-cell">
-                    {exp.location || 'N/A'}
-                  </td>
-                  <td className="value-cell">
-                    {exp.project_value ? formatValue(exp.project_value) : 'N/A'}
+                  <td className="details-cell">
+                    <div className="consolidated-details">
+                      {clients.find(c => c.id === exp.client_id)?.client_name && (
+                        <div className="detail-row">
+                          <span className="detail-label">Client:</span> {clients.find(c => c.id === exp.client_id)?.client_name}
+                        </div>
+                      )}
+                      {exp.location && (
+                        <div className="detail-row">
+                          <span className="detail-label">Location:</span> {exp.location}
+                        </div>
+                      )}
+                      {exp.project_value && (
+                        <div className="detail-row">
+                          <span className="detail-label">Value:</span> {formatValue(exp.project_value)}
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
