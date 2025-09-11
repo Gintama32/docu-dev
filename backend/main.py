@@ -43,7 +43,9 @@ class Settings:
     def __init__(self):
         self.environment = os.getenv("ENVIRONMENT", "development")
         self.debug = self.environment == "development"
-        self.allowed_hosts = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+        self.allowed_hosts = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(
+            ","
+        )
         self.cors_origins = self._get_cors_origins()
         self.log_level = os.getenv("LOG_LEVEL", "INFO").upper()
         self.max_log_size = int(os.getenv("MAX_LOG_SIZE", "5242880"))  # 5MB
@@ -60,7 +62,11 @@ class Settings:
                 "http://127.0.0.1:5173",
                 "http://localhost:3000",
             ]
-        return os.getenv("CORS_ORIGINS", "").split(",") if os.getenv("CORS_ORIGINS") else []
+        return (
+            os.getenv("CORS_ORIGINS", "").split(",")
+            if os.getenv("CORS_ORIGINS")
+            else []
+        )
 
     def _validate_environment(self):
         """Validate critical environment variables"""
@@ -68,7 +74,9 @@ class Settings:
         missing_vars = [var for var in required_vars if not os.getenv(var)]
 
         if missing_vars:
-            raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
+            raise ValueError(
+                f"Missing required environment variables: {', '.join(missing_vars)}"
+            )
 
 
 settings = Settings()
@@ -125,7 +133,9 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     if not settings.debug:
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains"
+        )
     return response
 
 
@@ -154,7 +164,8 @@ def _setup_logging():
             logger.setLevel(getattr(logging, settings.log_level))
             # Avoid duplicate handlers on reload
             if not any(
-                isinstance(h, RotatingFileHandler) and getattr(h, "baseFilename", None) == log_path
+                isinstance(h, RotatingFileHandler)
+                and getattr(h, "baseFilename", None) == log_path
                 for h in logger.handlers
             ):
                 logger.addHandler(file_handler)
@@ -185,7 +196,6 @@ app.include_router(ai.router)
 app.include_router(user_profiles.router)
 app.include_router(projects.router)
 app.include_router(media.router)
-app.include_router(media.public_router)
 
 
 async def _initialize_default_data():
@@ -200,7 +210,9 @@ async def _initialize_default_data():
 
             crud.create_template(
                 db,
-                schemas.TemplateCreate(name="Default", content=template_content, is_default=True),
+                schemas.TemplateCreate(
+                    name="Default", content=template_content, is_default=True
+                ),
             )
             logging.getLogger("app").info("Created default template from template file")
     finally:
@@ -233,6 +245,7 @@ def health_check(db: Session = Depends(get_db)):
     try:
         # Test database connection
         from sqlalchemy import text
+
         db.execute(text("SELECT 1"))
         db_status = "healthy"
     except Exception as e:
@@ -320,10 +333,16 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle unexpected errors"""
     logger = logging.getLogger("app")
-    logger.error(f"Unhandled exception: {request.method} {request.url.path} | {str(exc)}")
+    logger.error(
+        f"Unhandled exception: {request.method} {request.url.path} | {str(exc)}"
+    )
     logger.error(f"Traceback: {traceback.format_exc()}")
 
     if settings.debug:
-        return JSONResponse(status_code=500, content={"detail": f"Internal server error: {str(exc)}"})
+        return JSONResponse(
+            status_code=500, content={"detail": f"Internal server error: {str(exc)}"}
+        )
     else:
-        return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+        return JSONResponse(
+            status_code=500, content={"detail": "Internal server error"}
+        )

@@ -13,7 +13,9 @@ class TemplateService:
     """Service for loading and managing template files"""
 
     def __init__(self):
-        self.templates_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates")
+        self.templates_dir = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates"
+        )
 
     def load_template(self, template_name: str) -> Optional[str]:
         """

@@ -24,12 +24,25 @@ pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 load_dotenv()
 
 # JWT settings
-SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY:
-    raise RuntimeError(
-        "SECRET_KEY environment variable is required for token signing. "
-        "Set SECRET_KEY in your environment or .env file."
-    )
+def get_secret_key():
+    """Get SECRET_KEY with lazy loading and proper error handling"""
+    from dotenv import load_dotenv
+    import os
+    
+    # Try to load .env from the backend directory
+    backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    env_path = os.path.join(backend_dir, '.env')
+    load_dotenv(env_path)  # Load .env file from backend directory
+    
+    secret_key = os.getenv("SECRET_KEY")
+    if not secret_key:
+        raise RuntimeError(
+            f"SECRET_KEY environment variable is required for token signing. "
+            f"Set SECRET_KEY in your environment or .env file. Checked: {env_path}"
+        )
+    return secret_key
+
+SECRET_KEY = get_secret_key()
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
 
@@ -53,7 +66,9 @@ class AuthService:
         return pwd_context.hash(password)
 
     @staticmethod
-    def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+    def create_access_token(
+        data: Dict[str, Any], expires_delta: Optional[timedelta] = None
+    ) -> str:
         """Create a JWT access token"""
         to_encode = data.copy()
         if expires_delta:
@@ -75,7 +90,9 @@ class AuthService:
             return None
 
     @staticmethod
-    def create_user_session(db: Session, user_id: int, ip_address: str = None, user_agent: str = None) -> str:
+    def create_user_session(
+        db: Session, user_id: int, ip_address: str = None, user_agent: str = None
+    ) -> str:
         """Create a new user session"""
         session_token = secrets.token_urlsafe(32)
         expires_at = datetime.utcnow() + timedelta(days=30)  # Session lasts 30 days
@@ -114,9 +131,15 @@ class AuthService:
         return None
 
     @staticmethod
-    def authenticate_user(db: Session, email: str, password: str) -> Optional[models.User]:
+    def authenticate_user(
+        db: Session, email: str, password: str
+    ) -> Optional[models.User]:
         """Authenticate user with email and password"""
-        user = db.query(models.User).filter(models.User.email == email, models.User.is_active == True).first()
+        user = (
+            db.query(models.User)
+            .filter(models.User.email == email, models.User.is_active == True)
+            .first()
+        )
 
         if not user or not user.hashed_password:
             return None
@@ -137,13 +160,16 @@ class AuthService:
             async with httpx.AsyncClient() as client:
                 # Get user info from Microsoft Graph API
                 headers = {"Authorization": f"Bearer {access_token}"}
-                response = await client.get("https://graph.microsoft.com/v1.0/me", headers=headers)
+                response = await client.get(
+                    "https://graph.microsoft.com/v1.0/me", headers=headers
+                )
 
                 if response.status_code == 200:
                     user_data = response.json()
                     return {
                         "microsoft_id": user_data.get("id"),
-                        "email": user_data.get("mail") or user_data.get("userPrincipalName"),
+                        "email": user_data.get("mail")
+                        or user_data.get("userPrincipalName"),
                         "full_name": user_data.get("displayName"),
                         "first_name": user_data.get("givenName"),
                         "last_name": user_data.get("surname"),
@@ -155,14 +181,24 @@ class AuthService:
             return None
 
     @staticmethod
-    def create_or_update_sso_user(db: Session, microsoft_data: Dict[str, Any]) -> models.User:
+    def create_or_update_sso_user(
+        db: Session, microsoft_data: Dict[str, Any]
+    ) -> models.User:
         """Create or update user from Microsoft SSO data"""
         # Check if user exists by Microsoft ID
-        user = db.query(models.User).filter(models.User.microsoft_id == microsoft_data["microsoft_id"]).first()
+        user = (
+            db.query(models.User)
+            .filter(models.User.microsoft_id == microsoft_data["microsoft_id"])
+            .first()
+        )
 
         if not user:
             # Check if user exists by email
-            user = db.query(models.User).filter(models.User.email == microsoft_data["email"]).first()
+            user = (
+                db.query(models.User)
+                .filter(models.User.email == microsoft_data["email"])
+                .first()
+            )
 
             if user:
                 # Link existing user to Microsoft account
@@ -199,7 +235,11 @@ class AuthService:
     @staticmethod
     def logout_user(db: Session, session_token: str) -> bool:
         """Invalidate user session"""
-        session = db.query(models.UserSession).filter(models.UserSession.session_token == session_token).first()
+        session = (
+            db.query(models.UserSession)
+            .filter(models.UserSession.session_token == session_token)
+            .first()
+        )
 
         if session:
             session.is_active = False

@@ -1,0 +1,115 @@
+.media-upload {
+  width: 100%;
+}
+
+.upload-area {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  border: 2px dashed var(--border-light);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-secondary);
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+
+.upload-area:hover {
+  border-color: var(--accent-primary);
+  background-color: var(--bg-hover);
+}
+
+.upload-area.drag-active {
+  border-color: var(--accent-primary);
+  background-color: var(--accent-light);
+}
+
+.upload-area.uploading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.upload-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--text-secondary);
+  stroke-width: 1.5;
+  margin-bottom: var(--space-md);
+}
+
+.upload-text {
+  font-size: var(--font-lg);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-sm) 0;
+}
+
+.upload-hint {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  margin: 0;
+  text-align: center;
+}
+
+.upload-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.upload-input:disabled {
+  cursor: not-allowed;
+}
+
+/* Preview */
+.preview-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.preview-image {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: var(--radius-base);
+  border: 1px solid var(--border-light);
+  object-fit: cover;
+}
+
+.preview-remove {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-sm);
+}
+
+.pdf-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  background-color: var(--bg-tertiary);
+  border-radius: var(--radius-base);
+  border: 1px solid var(--border-light);
+}
+
+.pdf-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-danger);
+  stroke-width: 1.5;
+}
+
+.pdf-name {
+  font-size: var(--font-sm);
+  color: var(--text-primary);
+  font-weight: var(--font-medium);
+  text-align: center;
+  word-break: break-word;
+}

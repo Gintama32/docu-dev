@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import './MediaPicker.css';
 
 function MediaPicker({ value, onChange }) {
   const [items, setItems] = useState([]);
@@ -14,8 +15,16 @@ function MediaPicker({ value, onChange }) {
   };
 
   const reload = async () => {
-    const { response, data } = await api.json('/api/media');
-    if (response.ok) setItems(data || []);
+    try {
+      const { response, data } = await api.json('/api/media');
+      if (response.ok) {
+        setItems(data || []);
+      } else {
+        console.error('MediaPicker API failed:', response.status, data);
+      }
+    } catch (error) {
+      console.error('MediaPicker API error:', error);
+    }
   };
 
   useEffect(() => { reload(); }, []);
@@ -43,27 +52,73 @@ function MediaPicker({ value, onChange }) {
   };
 
   return (
-    <div>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <select value={value || ''} onChange={(e) => onChange && onChange(e.target.value ? Number(e.target.value) : null)}>
-          <option value="">Select existing…</option>
-          {items.map((m) => (
-            <option key={m.id} value={m.id}>{m.media_uri ? m.media_uri.split('/').pop() : `Media #${m.id}`}</option>
-          ))}
-        </select>
-        <label className="button-secondary" style={{ cursor: 'pointer' }}>
-          {uploading ? 'Uploading…' : 'Upload'}
+    <div className="media-picker">
+      <div className="media-picker-header">
+        <h4>Select Image</h4>
+        <label className="button-secondary upload-button" style={{ cursor: 'pointer' }}>
+          {uploading ? 'Uploading…' : 'Upload New'}
           <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
         </label>
       </div>
+      
+      {items.length > 0 ? (
+        <div className="media-picker-grid">
+          {items.map((item) => {
+            const isSelected = value === item.id;
+            const imageUrl = item.media_uri ? toAbsolute(item.media_uri) : `${backendBase}/api/media/${item.id}/raw`;
+            
+            return (
+              <div 
+                key={item.id}
+                className={`media-picker-item ${isSelected ? 'selected' : ''}`}
+                onClick={() => onChange && onChange(item.id)}
+              >
+                <div className="media-picker-thumbnail">
+                  <img 
+                    src={imageUrl} 
+                    alt={item.original_filename || `Media ${item.id}`}
+                    loading="lazy"
+                  />
+                  {isSelected && (
+                    <div className="selection-indicator">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polyline points="20,6 9,17 4,12" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <div className="media-picker-info">
+                  <p className="media-filename">
+                    {item.original_filename || `Media ${item.id}`}
+                  </p>
+                  <p className="media-dimensions">
+                    {item.width && item.height ? `${item.width}×${item.height}` : item.format?.toUpperCase()}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="media-picker-empty">
+          <svg className="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
+          <p>No images available</p>
+          <p>Upload your first image using the button above</p>
+        </div>
+      )}
+      
       {value && (
-        <div style={{ marginTop: 8 }}>
-          {(() => {
-            const selected = items.find((m) => m.id === value);
-            if (!selected) return null;
-            const src = selected.media_uri ? toAbsolute(selected.media_uri) : `${backendBase}/api/media/${selected.id}/raw`;
-            return <img src={src} alt="Selected" style={{ maxWidth: 180, borderRadius: 6, border: '1px solid var(--border-light)' }} />;
-          })()}
+        <div className="media-picker-actions">
+          <button 
+            className="button-tertiary clear-selection"
+            onClick={() => onChange && onChange(null)}
+          >
+            Clear Selection
+          </button>
         </div>
       )}
     </div>

@@ -86,7 +86,7 @@ function Personnel() {
               <div>
                 {item.main_image_id ? (
                   <img
-                    src={`/api/media/${item.main_image_id}/raw`}
+                    src={`${import.meta?.env?.VITE_API_BASE || 'http://localhost:8001'}/api/media/${item.main_image_id}/raw`}
                     alt="Profile"
                     style={{ width: 100, height: 68, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--border-light)' }}
                   />

@@ -15,7 +15,9 @@ router = APIRouter(
 
 
 @router.post("/proposals", response_model=schemas.ProjectProposal)
-def create_project_proposal(proposal: schemas.ProjectProposalCreate, db: Session = Depends(get_db)):
+def create_project_proposal(
+    proposal: schemas.ProjectProposalCreate, db: Session = Depends(get_db)
+):
     return crud.create_project_proposal(db=db, proposal=proposal)
 
 

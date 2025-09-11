@@ -111,7 +111,9 @@ Rewritten Description:"""
                 }
 
             async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(f"{self.base_url}/chat/completions", headers=headers, json=data)
+                response = await client.post(
+                    f"{self.base_url}/chat/completions", headers=headers, json=data
+                )
 
                 if response.status_code != 200:
                     error_detail = response.text

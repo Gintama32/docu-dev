@@ -288,7 +288,191 @@
 .proposals-grid { grid-template-columns: 2fr 1fr 1.5fr 1fr 1fr 1fr 1.5fr; }
 
 /* Projects-specific columns */
-.projects-grid { grid-template-columns: 2fr 1fr 1fr 120px; }
+.projects-grid { 
+  grid-template-columns: 80px 2fr 1fr 1fr 200px !important;
+  display: grid !important;
+  grid-gap: 16px !important;
+  align-items: center !important;
+}
+
+.projects-grid .table-actions {
+  position: static !important;
+  float: none !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  grid-column: 5 !important; /* Force into 5th column */
+}
 
 /* Personnel-specific columns */
 .personnel-grid { grid-template-columns: 120px 1fr 120px; }
+
+/* Modal tabs styling */
+.modal-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: var(--space-md);
+}
+
+.modal-tabs button {
+  padding: var(--space-sm) var(--space-md);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.modal-tabs button:hover {
+  background: var(--background-tertiary);
+  color: var(--text-primary);
+}
+
+.modal-tabs button.active {
+  color: var(--accent-primary);
+  border-bottom-color: var(--accent-primary);
+}
+
+/* Project Detail Panel Layout */
+.proposals-page.with-side-panel {
+  display: flex;
+  gap: var(--space-lg);
+  height: calc(100vh - 80px);
+  overflow: hidden;
+}
+
+.proposals-page.with-side-panel .projects-layout {
+  display: flex;
+  flex: 1;
+  gap: var(--space-lg);
+}
+
+.proposals-page.with-side-panel .projects-main {
+  flex: 0 0 60%;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.project-detail-panel {
+  flex: 0 0 40%;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-base);
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  max-height: calc(100vh - 120px);
+  overflow: hidden;
+}
+
+.detail-panel-header {
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+}
+
+.detail-panel-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detail-panel-title h2 {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.detail-panel-actions {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.detail-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-lg);
+}
+
+.detail-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: var(--space-lg);
+  margin-left: calc(-1 * var(--space-lg));
+  margin-right: calc(-1 * var(--space-lg));
+  padding-left: var(--space-lg);
+}
+
+.detail-tabs button {
+  padding: var(--space-sm) var(--space-md);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.detail-tabs button:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.detail-tabs button.active {
+  color: var(--accent-primary);
+  border-bottom-color: var(--accent-primary);
+}
+
+.project-info .info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.project-info .info-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.project-info .info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.project-info .info-item label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.project-info .info-item p {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1em;
+  line-height: 1.4;
+}
+
+.empty-media-state {
+  padding: var(--space-xl);
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 2px dashed var(--border-light);
+}
+
+.table-action-view {
+  background: var(--accent-secondary) !important;
+  color: white !important;
+  border: 1px solid var(--accent-secondary) !important;
+}
+
+.table-action-view:hover {
+  background: var(--accent-secondary-dark) !important;
+}

@@ -58,7 +58,9 @@ def get_current_active_user(
 
 
 @router.post("/register", response_model=schemas.LoginResponse)
-def register(user_data: schemas.UserCreate, request: Request, db: Session = Depends(get_db)):
+def register(
+    user_data: schemas.UserCreate, request: Request, db: Session = Depends(get_db)
+):
     """Register a new user with email/password"""
     if not user_data.password:
         raise HTTPException(
@@ -67,9 +69,13 @@ def register(user_data: schemas.UserCreate, request: Request, db: Session = Depe
         )
 
     # Check if user already exists
-    existing_user = db.query(models.User).filter(models.User.email == user_data.email).first()
+    existing_user = (
+        db.query(models.User).filter(models.User.email == user_data.email).first()
+    )
     if existing_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
+        )
 
     # Create user
     hashed_password = auth_service.get_password_hash(user_data.password)
@@ -100,11 +106,15 @@ def register(user_data: schemas.UserCreate, request: Request, db: Session = Depe
 
     access_token = auth_service.create_access_token(data={"sub": str(db_user.id)})
 
-    return schemas.LoginResponse(access_token=access_token, user=schemas.User.model_validate(db_user))
+    return schemas.LoginResponse(
+        access_token=access_token, user=schemas.User.model_validate(db_user)
+    )
 
 
 @router.post("/login", response_model=schemas.LoginResponse)
-def login(login_data: schemas.LoginRequest, request: Request, db: Session = Depends(get_db)):
+def login(
+    login_data: schemas.LoginRequest, request: Request, db: Session = Depends(get_db)
+):
     """Login with email and password"""
     user = auth_service.authenticate_user(db, login_data.email, login_data.password)
     if not user:
@@ -124,7 +134,9 @@ def login(login_data: schemas.LoginRequest, request: Request, db: Session = Depe
 
     access_token = auth_service.create_access_token(data={"sub": str(user.id)})
 
-    return schemas.LoginResponse(access_token=access_token, user=schemas.User.model_validate(user))
+    return schemas.LoginResponse(
+        access_token=access_token, user=schemas.User.model_validate(user)
+    )
 
 
 @router.post("/microsoft-sso", response_model=schemas.LoginResponse)
@@ -135,7 +147,9 @@ async def microsoft_sso(
 ):
     """Login or register with Microsoft SSO"""
     # Verify Microsoft token
-    microsoft_user_data = await auth_service.verify_microsoft_token(sso_data.access_token)
+    microsoft_user_data = await auth_service.verify_microsoft_token(
+        sso_data.access_token
+    )
     if not microsoft_user_data:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -155,7 +169,9 @@ async def microsoft_sso(
 
     access_token = auth_service.create_access_token(data={"sub": str(user.id)})
 
-    return schemas.LoginResponse(access_token=access_token, user=schemas.User.model_validate(user))
+    return schemas.LoginResponse(
+        access_token=access_token, user=schemas.User.model_validate(user)
+    )
 
 
 @router.post("/logout")
@@ -205,7 +221,9 @@ def get_users(
 ):
     """Get list of users (admin only)"""
     if not current_user.is_admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+        )
 
     users = db.query(models.User).offset(skip).limit(limit).all()
     return [schemas.User.model_validate(user) for user in users]

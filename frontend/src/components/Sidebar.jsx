@@ -93,13 +93,22 @@ function Sidebar() {
           <ul>
             <li>
               <NavLink 
+                to="/" 
+                className={({ isActive }) => isActive ? 'active' : ''}
+                onClick={closeMobileMenu}
+              >
+                Dashboard
+              </NavLink>
+            </li>
+            {/* <li>
+              <NavLink 
                 to="/proposals" 
                 className={({ isActive }) => isActive ? 'active' : ''}
                 onClick={closeMobileMenu}
               >
                 Proposals
               </NavLink>
-            </li>
+            </li> */}
           </ul>
           <h3>Generate</h3>
           <ul>

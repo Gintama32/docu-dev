@@ -40,10 +40,14 @@ def create_template_from_file(
     template_content = template_service.load_template(template_filename)
 
     if template_content is None:
-        raise HTTPException(status_code=404, detail=f"Template file '{template_filename}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Template file '{template_filename}' not found"
+        )
 
     # Create template in database
-    template_data = schemas.TemplateCreate(name=name, content=template_content, is_default=is_default)
+    template_data = schemas.TemplateCreate(
+        name=name, content=template_content, is_default=is_default
+    )
 
     return crud.create_template(db, template_data)
 

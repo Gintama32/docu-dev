@@ -29,7 +29,9 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
 
     # SSO fields
-    microsoft_id = Column(String, unique=True, nullable=True, index=True)  # Azure AD object ID
+    microsoft_id = Column(
+        String, unique=True, nullable=True, index=True
+    )  # Azure AD object ID
     sso_provider = Column(String, nullable=True)  # 'microsoft', 'google', etc.
 
     # Profile fields
@@ -41,7 +43,9 @@ class User(Base):
     avatar_url = Column(String, nullable=True)
 
     # Preferences
-    preferences = Column(JSON, nullable=True, default=dict)  # UI preferences, notifications, etc.
+    preferences = Column(
+        JSON, nullable=True, default=dict
+    )  # UI preferences, notifications, etc.
 
     # Timestamps
     created_at = Column(DateTime, default=func.now())
@@ -77,7 +81,9 @@ class ProposalNote(Base):
     proposal_id = Column(Integer, ForeignKey("project_proposals.id"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     content = Column(Text, nullable=False)
-    note_type = Column(String, default="comment")  # 'comment', 'status_change', 'system'
+    note_type = Column(
+        String, default="comment"
+    )  # 'comment', 'status_change', 'system'
     is_internal = Column(Boolean, default=True)  # Internal vs client-visible
 
     created_at = Column(DateTime, default=func.now())
@@ -96,16 +102,24 @@ class ProjectProposal(Base):
     source = Column(String, default="manual")  # e.g., 'email', 'manual'
 
     # Enhanced proposal fields
-    status = Column(String, default="draft")  # draft, sent, under_review, accepted, rejected, on_hold
+    status = Column(
+        String, default="draft"
+    )  # draft, sent, under_review, accepted, rejected, on_hold
     location = Column(String)
     scope = Column(Text)  # Detailed scope description
     due_date = Column(Date)
     project_brief = Column(Text)  # Brief description/summary
     internal_notes = Column(Text)  # Internal team coordination notes
 
-    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)  # Can be null initially
-    contact_id = Column(Integer, ForeignKey("contacts.id"), nullable=True)  # Associated contact
-    created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Who created this proposal
+    client_id = Column(
+        Integer, ForeignKey("clients.id"), nullable=True
+    )  # Can be null initially
+    contact_id = Column(
+        Integer, ForeignKey("contacts.id"), nullable=True
+    )  # Associated contact
+    created_by_id = Column(
+        Integer, ForeignKey("users.id"), nullable=True
+    )  # Who created this proposal
 
     client = relationship("Client")
     contact = relationship("Contact")
@@ -135,13 +149,61 @@ class Template(Base):
 class Media(Base):
     __tablename__ = "media"
     id = Column(Integer, primary_key=True)
-    media_uri = Column(String, nullable=True)  # Optional external URI (e.g., S3)
-    media_type = Column(String, nullable=True)  # e.g., 'image/png'
-    image_content = Column(LargeBinary, nullable=True)  # Inline binary storage (optional)
-    size_bytes = Column(Integer, nullable=True)
+    cloudinary_public_id = Column(String(255), nullable=False, unique=True)
+    cloudinary_url = Column(Text, nullable=False)
+    preview_url = Column(Text)  # Thumbnail for images, first page for PDFs
+    resource_type = Column(String(20), nullable=False)  # 'image' or 'pdf'
+    format = Column(String(20))
+    width = Column(Integer)
+    height = Column(Integer)
+    pages = Column(Integer)  # For PDFs
+    bytes = Column(Integer)
+    uploaded_by = Column(Integer, ForeignKey("users.id"))
+    uploaded_at = Column(DateTime, default=func.now())
+    file_metadata = Column(JSON, default=dict)
 
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
+class ProjectMedia(Base):
+    __tablename__ = "project_media"
+    project_id = Column(
+        Integer, ForeignKey("projects.id", ondelete="CASCADE"), primary_key=True
+    )
+    media_id = Column(
+        Integer, ForeignKey("media.id", ondelete="CASCADE"), primary_key=True
+    )
+    media_type = Column(
+        String(50), default="attachment"
+    )  # 'hero_image', 'attachment', 'gallery'
+    display_order = Column(Integer, default=0)
+    caption = Column(Text)
+
+
+class ProfileMedia(Base):
+    __tablename__ = "profile_media"
+    profile_id = Column(
+        Integer, ForeignKey("user_profiles.id", ondelete="CASCADE"), primary_key=True
+    )
+    media_id = Column(
+        Integer, ForeignKey("media.id", ondelete="CASCADE"), primary_key=True
+    )
+    media_type = Column(
+        String(50), primary_key=True
+    )  # 'avatar', 'resume_pdf', 'certificate'
+    is_primary = Column(Boolean, default=False)
+
+
+class ResumeMedia(Base):
+    __tablename__ = "resume_media"
+    resume_id = Column(
+        Integer, ForeignKey("resumes.id", ondelete="CASCADE"), primary_key=True
+    )
+    media_id = Column(
+        Integer, ForeignKey("media.id", ondelete="CASCADE"), primary_key=True
+    )
+    media_type = Column(
+        String(50), default="attachment"
+    )  # 'generated_pdf', 'attachment'
+    version = Column(Integer, default=1)
 
 
 class UserProfile(Base):
@@ -155,12 +217,12 @@ class UserProfile(Base):
     full_name = Column(String(200), nullable=True)
     current_title = Column(String(200), nullable=True)
     professional_intro = Column(Text, nullable=True)  # renamed from 'intro'
-    
+
     # Employment Information
     department = Column(String(100), nullable=True)
     employee_type = Column(String(50), nullable=True)  # contract/full-time/consultant
     is_current_employee = Column(Boolean, default=True, nullable=True)
-    
+
     # Contact Information
     email = Column(String(255), nullable=True)
     mobile = Column(String(50), nullable=True)
@@ -171,7 +233,7 @@ class UserProfile(Base):
     skills = Column(JSON, nullable=True, default=list)
     certifications = Column(JSON, nullable=True, default=list)
     education = Column(JSON, nullable=True, default=list)
-    
+
     # Legacy/System fields
     main_image_id = Column(Integer, ForeignKey("media.id"), nullable=True)
     created_at = Column(DateTime, default=func.now())
@@ -187,8 +249,10 @@ class UserProfile(Base):
 class ProfileExperience(Base):
     __tablename__ = "profile_experiences"
     id = Column(Integer, primary_key=True)
-    user_profile_id = Column(Integer, ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False)
-    
+    user_profile_id = Column(
+        Integer, ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False
+    )
+
     company_name = Column(String(200), nullable=True)
     position = Column(String(200), nullable=True)
     experience_start = Column(Date, nullable=True)
@@ -196,13 +260,13 @@ class ProfileExperience(Base):
     experience_detail = Column(Text, nullable=True)
     is_current = Column(Boolean, default=False, nullable=True)
     display_order = Column(Integer, default=0, nullable=True)
-    
+
     # Relationship
     user_profile = relationship("UserProfile")
-    
+
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    
+
     # Relationships
     user_profile = relationship("UserProfile")
 
@@ -210,17 +274,19 @@ class ProfileExperience(Base):
 class ProfileSkill(Base):
     __tablename__ = "profile_skills"
     id = Column(Integer, primary_key=True)
-    user_profile_id = Column(Integer, ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False)
-    
+    user_profile_id = Column(
+        Integer, ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False
+    )
+
     skill_name = Column(String(200), nullable=False)
     skill_level = Column(String(50), nullable=True)
     years_of_experience = Column(Integer, nullable=True)
     category = Column(String(100), nullable=True)
     display_order = Column(Integer, default=0, nullable=True)
-    
+
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    
+
     # Relationship
     user_profile = relationship("UserProfile")
 
@@ -228,8 +294,10 @@ class ProfileSkill(Base):
 class ProfileCertification(Base):
     __tablename__ = "profile_certifications"
     id = Column(Integer, primary_key=True)
-    user_profile_id = Column(Integer, ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False)
-    
+    user_profile_id = Column(
+        Integer, ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False
+    )
+
     name = Column(String(200), nullable=False)
     issuing_organization = Column(String(200), nullable=False)
     issue_date = Column(Date, nullable=True)
@@ -237,10 +305,10 @@ class ProfileCertification(Base):
     credential_id = Column(String(100), nullable=True)
     credential_url = Column(String(500), nullable=True)
     display_order = Column(Integer, default=0, nullable=True)
-    
+
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    
+
     # Relationship
     user_profile = relationship("UserProfile")
 
@@ -248,8 +316,10 @@ class ProfileCertification(Base):
 class ProfileEducation(Base):
     __tablename__ = "profile_education"
     id = Column(Integer, primary_key=True)
-    user_profile_id = Column(Integer, ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False)
-    
+    user_profile_id = Column(
+        Integer, ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False
+    )
+
     institution = Column(String(200), nullable=False)
     degree = Column(String(200), nullable=False)
     field_of_study = Column(String(200), nullable=False)
@@ -259,10 +329,10 @@ class ProfileEducation(Base):
     description = Column(Text, nullable=True)
     activities = Column(Text, nullable=True)
     display_order = Column(Integer, default=0, nullable=True)
-    
+
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    
+
     # Relationship
     user_profile = relationship("UserProfile")
 
@@ -290,7 +360,9 @@ class Resume(Base):
     status = Column(String, default="draft", nullable=False)
     generated_content = Column(Text)
 
-    project_proposal_id = Column(Integer, ForeignKey("project_proposals.id"), nullable=True)
+    project_proposal_id = Column(
+        Integer, ForeignKey("project_proposals.id"), nullable=True
+    )
     project_proposal = relationship("ProjectProposal", back_populates="resumes")
 
     template_id = Column(Integer, ForeignKey("templates.id"), nullable=False)
@@ -341,7 +413,9 @@ class Client(Base):
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime, nullable=True)
-    contacts = relationship("Contact", back_populates="client", foreign_keys=[Contact.client_id])
+    contacts = relationship(
+        "Contact", back_populates="client", foreign_keys=[Contact.client_id]
+    )
     experiences = relationship("Experience", back_populates="client")
 
 
@@ -364,7 +438,9 @@ class Experience(Base):
     contact = relationship("Contact", back_populates="experiences")
 
     # Relationship to ResumeExperienceDetail
-    resume_experience_details = relationship("ResumeExperienceDetail", back_populates="experience")
+    resume_experience_details = relationship(
+        "ResumeExperienceDetail", back_populates="experience"
+    )
 
 
 class ResumeExperienceDetail(Base):

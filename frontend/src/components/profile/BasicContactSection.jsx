@@ -1,6 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useToast } from '../Toast';
+import MediaPicker from '../MediaPicker';
+import MediaUpload from '../MediaUpload';
+import MediaGallery from '../MediaGallery';
+import { api } from '../../lib/api';
 
 function BasicContactSection({ profile, onUpdate, onSave: _onSave }) {
+  const toast = useToast();
   const [localData, setLocalData] = useState({
     first_name: profile?.first_name || '',
     last_name: profile?.last_name || '',
@@ -13,8 +19,46 @@ function BasicContactSection({ profile, onUpdate, onSave: _onSave }) {
     email: profile?.email || '',
     mobile: profile?.mobile || '',
     address: profile?.address || '',
-    about_url: profile?.about_url || ''
+    about_url: profile?.about_url || '',
+    main_image_id: profile?.main_image_id || null
   });
+  
+  const [media, setMedia] = useState([]);
+
+  // Load profile media when profile changes
+  useEffect(() => {
+    if (profile?.id) {
+      loadProfileMedia();
+    }
+  }, [profile?.id]);
+
+  const loadProfileMedia = async () => {
+    if (!profile?.id) return;
+    
+    try {
+      const { response, data } = await api.json(`/api/media/profiles/${profile.id}`);
+      if (response.ok) {
+        setMedia(data || []);
+      } else {
+        console.error('Profile media API failed:', response.status, data);
+      }
+    } catch (error) {
+      console.error('Error loading profile media:', error);
+    }
+  };
+
+  const handleUploadComplete = (uploadedMedia) => {
+    setMedia(prev => [uploadedMedia, ...prev]);
+    toast.success('Media uploaded successfully!');
+  };
+
+  const handleMediaDelete = (mediaId) => {
+    setMedia(prev => prev.filter(m => m.id !== mediaId));
+    // If this was the main image, clear it
+    if (localData.main_image_id === mediaId) {
+      handleChange('main_image_id', null);
+    }
+  };
 
   const handleChange = (field, value) => {
     const updated = { ...localData, [field]: value };
@@ -230,6 +274,60 @@ function BasicContactSection({ profile, onUpdate, onSave: _onSave }) {
             <li>Keep it concise but impactful (150-300 words ideal)</li>
           </ul>
         </div>
+      </div>
+
+      {/* Profile Media Section */}
+      <div className="media-section" style={{ marginTop: 'var(--space-lg)' }}>
+        <h3>Profile Media</h3>
+        
+        {/* Main Profile Image Selection */}
+        <div className="form-group">
+          <label>Main Profile Image</label>
+          <MediaPicker 
+            value={localData.main_image_id} 
+            onChange={(id) => handleChange('main_image_id', id)} 
+          />
+          <small className="form-help">
+            This image will be used as your profile photo in resumes and personnel listings
+          </small>
+        </div>
+
+        {/* Upload New Media */}
+        {profile?.id && (
+          <div className="form-group">
+            <label>Upload New Media</label>
+            <MediaUpload
+              onUploadComplete={handleUploadComplete}
+              entityType="profile"
+              entityId={profile.id}
+              mediaType="avatar"
+              accept="image/*"
+            />
+          </div>
+        )}
+
+        {/* Media Gallery */}
+        {media.length > 0 && (
+          <div className="form-group">
+            <label>Profile Media Gallery</label>
+            <MediaGallery
+              media={media}
+              onDelete={handleMediaDelete}
+              showCaptions={false}
+            />
+          </div>
+        )}
+
+        {profile?.id && media.length === 0 && (
+          <div style={{ 
+            padding: 'var(--space-md)', 
+            textAlign: 'center', 
+            color: 'var(--text-secondary)',
+            fontStyle: 'italic' 
+          }}>
+            No media uploaded yet. Use the upload area above to add profile images.
+          </div>
+        )}
       </div>
     </div>
   );

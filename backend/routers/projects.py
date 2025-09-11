@@ -30,7 +30,9 @@ def create_project(project: schemas.ProjectCreate, db: Session = Depends(get_db)
 
 
 @router.put("/projects/{project_id}", response_model=schemas.Project)
-def update_project(project_id: int, project: schemas.ProjectUpdate, db: Session = Depends(get_db)):
+def update_project(
+    project_id: int, project: schemas.ProjectUpdate, db: Session = Depends(get_db)
+):
     updated = crud.update_project(db, project_id, project)
     if not updated:
         raise HTTPException(status_code=404, detail="Project not found")

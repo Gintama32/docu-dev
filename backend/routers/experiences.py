@@ -27,7 +27,9 @@ def get_experiences(
 
 
 @router.post("/experiences", response_model=schemas.Experience)
-def create_experience(experience: schemas.ExperienceCreate, db: Session = Depends(get_db)):
+def create_experience(
+    experience: schemas.ExperienceCreate, db: Session = Depends(get_db)
+):
     return crud.create_experience(db, experience)
 
 

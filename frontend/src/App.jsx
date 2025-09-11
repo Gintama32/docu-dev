@@ -9,6 +9,7 @@ import Projects from './pages/Projects';
 import Personnel from './pages/Personnel';
 import ProfilePage from './pages/ProfilePage';
 import Proposals from './pages/Proposals';
+import Welcome from './pages/Welcome';
 import Clients from './pages/Clients';
 import Login from './pages/Login';
 import './styles/variables.css';
@@ -47,7 +48,7 @@ function AppContent() {
           <Route path="/personnel" element={<Personnel />} />
           <Route path="/personnel/profile/new" element={<ProfilePage />} />
           <Route path="/personnel/profile/:profileId" element={<ProfilePage />} />
-          <Route path="/" element={<Proposals />} />
+          <Route path="/" element={<Welcome />} />
         </Routes>
       </main>
     </div>

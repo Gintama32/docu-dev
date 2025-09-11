@@ -11,6 +11,7 @@ PLAYWRIGHT_AVAILABLE = False
 
 try:
     from playwright.async_api import async_playwright
+
     PLAYWRIGHT_AVAILABLE = True
     print("Playwright successfully loaded!")
 except ImportError as e:
@@ -23,23 +24,23 @@ async def _generate_pdf_async(html_content: str) -> bytes:
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         page = await browser.new_page()
-        
+
         # Set the HTML content
         await page.set_content(html_content, wait_until="networkidle")
-        
+
         # Generate PDF with good settings for resumes
         pdf_bytes = await page.pdf(
             format="A4",
             margin={
                 "top": "0.5in",
-                "right": "0.5in", 
+                "right": "0.5in",
                 "bottom": "0.5in",
-                "left": "0.5in"
+                "left": "0.5in",
             },
             print_background=True,
-            prefer_css_page_size=True
+            prefer_css_page_size=True,
         )
-        
+
         await browser.close()
         return pdf_bytes
 

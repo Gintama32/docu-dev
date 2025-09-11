@@ -21,7 +21,7 @@ function Login({ showRedirectMessage = false }) {
 
   // Redirect if already authenticated
   if (isAuthenticated) {
-    const targetPath = redirectPath || "/proposals";
+    const targetPath = redirectPath || "/";
     return <Navigate to={targetPath} replace />;
   }
 
@@ -44,7 +44,7 @@ function Login({ showRedirectMessage = false }) {
 
       if (result.success) {
         // Navigate to saved path or default
-        const targetPath = result.redirectPath || "/proposals";
+        const targetPath = result.redirectPath || "/";
         navigate(targetPath, { replace: true });
       } else {
         setError(result.error);

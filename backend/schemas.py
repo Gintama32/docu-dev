@@ -289,7 +289,9 @@ class Resume(ResumeBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    generated_content: Optional[str] = None  # Ensure generated_content is included in the response
+    generated_content: Optional[str] = (
+        None  # Ensure generated_content is included in the response
+    )
 
     class Config:
         from_attributes = True
@@ -324,11 +326,15 @@ class CertificationItem(BaseModel):
     valid_until: Optional[date] = None
     credential_id: Optional[str] = Field(None, max_length=100)
 
+
 class SkillItem(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
-    level: Optional[Literal["Beginner", "Intermediate", "Advanced", "Expert"]] = "Intermediate"
+    level: Optional[Literal["Beginner", "Intermediate", "Advanced", "Expert"]] = (
+        "Intermediate"
+    )
     years: Optional[int] = Field(None, ge=0, le=50)
     category: Optional[str] = Field(None, max_length=100)
+
 
 class EducationItem(BaseModel):
     institution: str = Field(..., min_length=1, max_length=200)
@@ -338,33 +344,34 @@ class EducationItem(BaseModel):
     gpa: Optional[float] = Field(None, ge=0.0, le=4.0)
     honors: Optional[str] = Field(None, max_length=100)
 
+
 # UserProfile schemas
 class UserProfileBase(BaseModel):
     user_id: int
-    
+
     # Basic Information
     first_name: Optional[str] = Field(None, max_length=100)
     last_name: Optional[str] = Field(None, max_length=100)
     full_name: Optional[str] = Field(None, max_length=200)
     current_title: Optional[str] = Field(None, max_length=200)
     professional_intro: Optional[str] = None
-    
+
     # Employment Information
     department: Optional[str] = Field(None, max_length=100)
     employee_type: Optional[Literal["contract", "full-time", "consultant"]] = None
     is_current_employee: Optional[bool] = True
-    
+
     # Contact Information
     email: Optional[EmailStr] = None
     mobile: Optional[str] = Field(None, max_length=50)
     address: Optional[str] = Field(None, max_length=500)
     about_url: Optional[HttpUrl] = None
-    
+
     # Collections
     certifications: Optional[List[CertificationItem]] = []
     skills: Optional[List[SkillItem]] = []
     education: Optional[List[EducationItem]] = []
-    
+
     # System fields
     main_image_id: Optional[int] = None
 
@@ -380,23 +387,23 @@ class UserProfileUpdate(BaseModel):
     full_name: Optional[str] = Field(None, max_length=200)
     current_title: Optional[str] = Field(None, max_length=200)
     professional_intro: Optional[str] = None
-    
+
     # Employment Information
     department: Optional[str] = Field(None, max_length=100)
     employee_type: Optional[Literal["contract", "full-time", "consultant"]] = None
     is_current_employee: Optional[bool] = None
-    
+
     # Contact Information
     email: Optional[EmailStr] = None
     mobile: Optional[str] = Field(None, max_length=50)
     address: Optional[str] = Field(None, max_length=500)
     about_url: Optional[HttpUrl] = None
-    
+
     # Collections
     certifications: Optional[List[CertificationItem]] = None
     skills: Optional[List[SkillItem]] = None
     education: Optional[List[EducationItem]] = None
-    
+
     # System fields
     main_image_id: Optional[int] = None
 
@@ -421,8 +428,10 @@ class ProfileExperienceBase(BaseModel):
     is_current: Optional[bool] = False
     display_order: Optional[int] = 0
 
+
 class ProfileExperienceCreate(ProfileExperienceBase):
     pass
+
 
 class ProfileExperienceUpdate(BaseModel):
     company_name: Optional[str] = Field(None, max_length=200)
@@ -432,6 +441,7 @@ class ProfileExperienceUpdate(BaseModel):
     experience_detail: Optional[str] = None
     is_current: Optional[bool] = None
     display_order: Optional[int] = None
+
 
 class ProfileExperience(ProfileExperienceBase):
     id: int

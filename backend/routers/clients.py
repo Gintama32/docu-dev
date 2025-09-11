@@ -34,16 +34,20 @@ def create_client(client: schemas.ClientCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/clients/{client_id}", response_model=schemas.Client)
-def update_client(client_id: int, client: schemas.ClientCreate, db: Session = Depends(get_db)):
+def update_client(
+    client_id: int, client: schemas.ClientCreate, db: Session = Depends(get_db)
+):
     db_client = crud.get_client(db, client_id=client_id)
     if not db_client:
         raise HTTPException(status_code=404, detail="Client not found")
-    
+
     # Update client fields
-    client_data = client.model_dump() if hasattr(client, 'model_dump') else client.dict()
+    client_data = (
+        client.model_dump() if hasattr(client, "model_dump") else client.dict()
+    )
     for field, value in client_data.items():
         setattr(db_client, field, value)
-    
+
     db.commit()
     db.refresh(db_client)
     return db_client
@@ -54,7 +58,7 @@ def delete_client(client_id: int, db: Session = Depends(get_db)):
     client = crud.get_client(db, client_id=client_id)
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
-    
+
     db.delete(client)
     db.commit()
     return {"message": "Client deleted successfully"}

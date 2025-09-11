@@ -9,9 +9,7 @@ echo "Starting backend with Playwright support..."
 echo "Checking PDF generation capabilities..."
 
 # Test if Playwright is available - try multiple ways
-if python -c "from playwright.sync_api import sync_playwright; print('✅ Playwright available')" 2>/dev/null; then
-    echo "✅ Playwright is ready for PDF generation"
-elif uv tool run --from playwright python -c "from playwright.sync_api import sync_playwright; print('✅ Playwright available (via uv tool)')" 2>/dev/null; then
+if uv tool run --from playwright python -c "from playwright.sync_api import sync_playwright; print('✅ Playwright available (via uv tool)')" 2>/dev/null; then
     echo "✅ Playwright is ready for PDF generation (via uv tool)"
 else
     echo "⚠️  Playwright not found. Trying to install..."
@@ -21,11 +19,12 @@ fi
 # Change to backend directory and start the FastAPI server
 mkdir -p "$SCRIPT_DIR/logs"
 UVICORN_LOG_LEVEL=${UVICORN_LOG_LEVEL:-info}
-# Try uv run first, fallback to direct python if project build fails
-if uv run uvicorn backend.main:app --reload --port 8001 --log-level $UVICORN_LOG_LEVEL 2>/dev/null; then
-    echo "Started with uv run"
-else
-    echo "uv run failed, trying direct python..."
-    cd "$SCRIPT_DIR/.."
-    PYTHONPATH=/Users/dawa/SherpaGCM/documaker python -m uvicorn backend.main:app --reload --port 8001 --log-level $UVICORN_LOG_LEVEL
-fi
+
+# Change to the parent directory (where the backend package is)
+cd "$SCRIPT_DIR/.."
+
+# Skip uv run for now and use direct python approach that works
+echo "Starting with direct python approach..."
+export PYTHONPATH="$SCRIPT_DIR/.."
+# uv run python -m uvicorn backend.main:app --reload --port 8001 --log-level $UVICORN_LOG_LEVEL
+uv run uvicorn backend.main:app --reload --port 8001 --log-level $UVICORN_LOG_LEVEL | tee -a "$SCRIPT_DIR/logs/uvicorn.out"

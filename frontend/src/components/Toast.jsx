@@ -23,7 +23,7 @@ function ToastContainer({ toasts, dismiss }) {
             <div className="toast-title">
               {t.title || (t.type === 'error' ? 'Error' : t.type === 'success' ? 'Success' : t.type === 'warning' ? 'Warning' : 'Info')}
             </div>
-            <button onClick={() => dismiss(t.id)} className="toast-close">×</button>
+            <button onClick={() => dismiss(t.id)} className="toast-close">✕</button>
           </div>
           {t.message && (
             <div className="toast-message">{t.message}</div>
