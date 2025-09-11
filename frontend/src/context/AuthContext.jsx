@@ -49,7 +49,11 @@ export const AuthProvider = ({ children }) => {
         logout();
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
+      // Don't logout on network errors, only on auth failures
+      if (error.message?.includes('fetch') || error.message?.includes('network')) {
+        setLoading(false);
+        return;
+      }
       logout();
     } finally {
       setLoading(false);

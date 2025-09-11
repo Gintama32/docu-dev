@@ -19,11 +19,10 @@ function MediaPicker({ value, onChange }) {
       const { response, data } = await api.json('/api/media');
       if (response.ok) {
         setItems(data || []);
-      } else {
-        console.error('MediaPicker API failed:', response.status, data);
       }
     } catch (error) {
-      console.error('MediaPicker API error:', error);
+      // Silently handle errors - don't expose API details
+      setItems([]);
     }
   };
 

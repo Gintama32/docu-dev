@@ -39,11 +39,9 @@ function BasicContactSection({ profile, onUpdate, onSave: _onSave }) {
       const { response, data } = await api.json(`/api/media/profiles/${profile.id}`);
       if (response.ok) {
         setMedia(data || []);
-      } else {
-        console.error('Profile media API failed:', response.status, data);
       }
     } catch (error) {
-      console.error('Error loading profile media:', error);
+      // Silently handle errors
     }
   };
 

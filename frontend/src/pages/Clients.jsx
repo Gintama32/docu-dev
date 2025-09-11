@@ -103,7 +103,6 @@ function Clients() {
         main_contact_id: form.main_contact_id || null,
       };
       
-      console.log('Submitting client form:', cleanedForm); // Debug logging
       
       const response = editing 
         ? await api.request(`/api/clients/${editing.id}`, {
@@ -129,7 +128,6 @@ function Clients() {
       }
 
       const clientData = await response.json();
-      console.log('Client saved:', clientData); // Debug logging
 
       toast.success(editing ? 'Client updated successfully' : 'Client created successfully');
       setShowForm(false);

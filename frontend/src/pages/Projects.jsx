@@ -62,11 +62,9 @@ function Projects() {
       if (response.ok) {
         setProjectMedia(data || []);
       } else {
-        console.error('Project media API failed:', response.status, data);
         setProjectMedia([]);
       }
     } catch (error) {
-      console.error('Error loading project media:', error);
       setProjectMedia([]);
     }
   };
