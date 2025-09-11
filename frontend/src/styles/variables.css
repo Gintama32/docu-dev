@@ -177,10 +177,10 @@
   --background-tertiary: var(--bg-tertiary);
   --primary-color: var(--color-primary);
   --button-primary-background: var(--button-primary-bg);
-  --button-primary-text: var(--button-primary-text);
+  /* --button-primary-text is already defined above, no need to remap */
   --button-primary-hover: var(--color-primary-hover);
   --button-secondary-background: var(--button-secondary-bg);
-  --button-secondary-text: var(--button-secondary-text);
+  /* --button-secondary-text is already defined above, no need to remap */
   --button-secondary-hover: var(--bg-tertiary);
   --border-color: var(--border-base);
   --shadow-md: var(--shadow-base);

@@ -11,6 +11,10 @@ import ProfilePage from './pages/ProfilePage';
 import Proposals from './pages/Proposals';
 import Clients from './pages/Clients';
 import Login from './pages/Login';
+import './styles/variables.css';
+import './styles/utilities.css';
+import './styles/components.css';
+import './styles/mobile.css';
 import './App.css';
 
 function AppContent() {

@@ -1,9 +1,3 @@
-/* Import global styles */
-@import './styles/variables.css';
-@import './styles/utilities.css';
-@import './styles/components.css';
-@import './styles/mobile.css';
-
 /* App-specific styles */
 html, body, #root {
   height: 100%;
@@ -846,6 +840,7 @@ body {
 }
 
 /* Button overrides - transitioning to new .btn classes */
+button.button-primary,
 .button-primary {
   /* Inherit from .btn and .btn-primary - remove once all components are updated */
   display: inline-flex;
@@ -860,7 +855,7 @@ body {
   cursor: pointer;
   transition: all var(--transition-base);
   background-color: var(--button-primary-bg);
-  color: var(--button-primary-text);
+  color: var(--button-primary-text) !important;
 }
 
 .button-primary:hover {
@@ -1281,7 +1276,6 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 20px;
-  margin-bottom: 25px;
 }
 
 .experience-card {
@@ -2529,10 +2523,10 @@ body {
 
 /* Filters Section */
 .filters-section {
-  background: var(--background-secondary);
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 24px;
+  background: var(--bg-secondary);
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-lg);
 }
 
 .filters-row {
@@ -2571,8 +2565,8 @@ body {
 
 .results-info {
   color: var(--text-secondary);
-  margin-bottom: 16px;
-  font-size: 14px;
+  margin-bottom: var(--space-sm);
+  font-size: var(--font-sm);
 }
 
 /* Clients Grid Layout */
