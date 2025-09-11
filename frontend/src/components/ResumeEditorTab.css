@@ -14,10 +14,10 @@
   height: 100%;
 }
 
-/* Resume Builder Content - reduce spacing */
+/* Resume Builder Content */
 .resume-builder-content {
   flex: 1;
-  padding: 8px 16px 16px 16px; /* Reduced top padding */
+  padding: var(--space-sm) var(--space-lg) var(--space-lg) var(--space-lg);
 }
 
 /* Resume Editor Header */
@@ -25,16 +25,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 16px 8px 16px; /* Reduced bottom padding */
-  background: var(--background-primary);
-  /* Removed border-bottom */
+  padding: var(--space-sm);
+  background: var(--bg-primary);
 }
 
 .resume-editor-actions {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  gap: 8px !important;
+  gap: var(--space-sm) !important;
 }
 
 /* Ensure desktop buttons stay horizontal - stronger specificity */
@@ -68,7 +67,7 @@
 @media (max-width: 768px) {
   .resume-editor-header {
     flex-direction: column !important;
-    gap: 16px !important;
+    gap: 8px !important;
     align-items: stretch !important;
     padding: 16px;
   }

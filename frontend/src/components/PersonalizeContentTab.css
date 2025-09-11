@@ -1,20 +1,20 @@
 /* Personalize Content Tab Styles */
 .personalize-content-tab {
-  padding: 20px;
-  max-width: none; /* allow full width within content area */
-  margin: 0;       /* align left with page content */
+  padding: var(--space-xl);
+  max-width: none;
+  margin: 0;
   color: var(--text-primary);
 }
 
 .personalize-header {
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-2xl);
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 20px;
+  gap: var(--space-sm);
 }
 
 .header-text {
@@ -43,11 +43,11 @@
 
 /* AI Controls Section */
 .ai-controls-section {
-  background: var(--background-secondary);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-light);
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 25px;
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-xl);
 }
 
 .ai-controls-header {
@@ -72,31 +72,7 @@
   flex-wrap: wrap;
 }
 
-.button-ai {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
-  font-size: 0.9em;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.button-ai:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.button-ai:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
+/* AI button styles - extends btn-ai from components.css */
 
 .bulk-ai-btn {
   padding: 12px 20px;
@@ -485,58 +461,7 @@ button:disabled:hover {
   }
 }
 
-.button-ai {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.button-ai:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.button-ai:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.button-reset {
-  background: var(--background-secondary);
-  color: var(--text-secondary);
-  border: 2px solid var(--border-color);
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.button-reset:hover:not(:disabled) {
-  background: var(--button-secondary-hover);
-  color: var(--text-primary);
-  border-color: var(--primary-color);
-}
-
-.button-reset:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  background: var(--background-secondary);
-  color: var(--text-secondary);
-  border-color: var(--border-color);
-}
+/* Button styles moved to components.css - use .btn-ai and .btn-secondary classes */
 
 /* Edit Actions */
 .edit-actions {

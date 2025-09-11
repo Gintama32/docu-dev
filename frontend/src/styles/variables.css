@@ -1,0 +1,189 @@
+/* Global CSS Variables - Single source of truth for all design tokens */
+
+:root {
+  /* Spacing Scale - Use these consistently throughout the app */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+  
+  /* Component Spacing - Consistent padding/margins for components */
+  --padding-button: var(--space-sm) var(--space-lg);
+  --padding-input: var(--space-md) var(--space-lg);
+  --padding-card: var(--space-xl);
+  --padding-section: var(--space-2xl);
+  --padding-page: var(--space-xl);
+  --padding-page-mobile: var(--space-lg);
+  
+  /* Sizing */
+  --min-touch-target: 44px; /* iOS recommended touch target */
+  --max-content-width: 1200px;
+  --sidebar-width: 260px;
+  --sidebar-width-mobile: 280px;
+  
+  /* Typography Scale */
+  --font-xs: 0.75rem;  /* 12px */
+  --font-sm: 0.875rem; /* 14px */
+  --font-base: 1rem;   /* 16px */
+  --font-lg: 1.125rem; /* 18px */
+  --font-xl: 1.25rem;  /* 20px */
+  --font-2xl: 1.5rem;  /* 24px */
+  --font-3xl: 2rem;    /* 32px */
+  
+  /* Font Weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  
+  /* Line Heights */
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.7;
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-base: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+  
+  /* Z-index Scale */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 1000;
+  --z-mobile-menu: 9998;
+  --z-mobile-button: 9999;
+  
+  /* Breakpoints - Use these consistently */
+  --breakpoint-mobile: 768px;
+  --breakpoint-tablet: 1024px;
+  --breakpoint-desktop: 1280px;
+}
+
+/* Light Theme Colors */
+:root {
+  /* Primary Colors */
+  --color-primary: #3498db;
+  --color-primary-hover: #2980b9;
+  --color-primary-rgb: 52, 152, 219;
+  
+  /* Accent Colors */
+  --color-accent: #6366f1;
+  --color-success: #10b981;
+  --color-success-dark: #059669;
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+  
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f4f7f6;
+  
+  /* Text Colors */
+  --text-primary: #2c3e50;
+  --text-secondary: #6c757d;
+  --text-muted: #95a5a6;
+  --text-inverse: #ffffff;
+  
+  /* Border Colors */
+  --border-base: #dee2e6;
+  --border-light: #e9ecef;
+  --border-dark: #ced4da;
+  
+  /* Component Specific */
+  --sidebar-bg: #1e293b;
+  --sidebar-text: #f1f5f9;
+  --sidebar-text-secondary: #94a3b8;
+  --sidebar-hover: #334155;
+  
+  --input-bg: #ffffff;
+  --input-border: #ced4da;
+  --input-focus-border: #3498db;
+  
+  --button-primary-bg: #3498db;
+  --button-primary-text: #ffffff;
+  --button-secondary-bg: #e9ecef;
+  --button-secondary-text: #2c3e50;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-base: 0 2px 5px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark Theme Colors */
+[data-theme="dark"] {
+  /* Primary Colors */
+  --color-primary: #3498db;
+  --color-primary-hover: #5dade2;
+  --color-primary-rgb: 52, 152, 219;
+  
+  /* Accent Colors */
+  --color-accent: #8b5cf6;
+  
+  /* Background Colors */
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #242424;
+  
+  /* Text Colors */
+  --text-primary: #e9ecef;
+  --text-secondary: #adb5bd;
+  --text-muted: #6c757d;
+  
+  /* Border Colors */
+  --border-base: #3a3a3a;
+  --border-light: #2a2a2a;
+  --border-dark: #4a4a4a;
+  
+  /* Component Specific */
+  --sidebar-bg: #0f172a;
+  --sidebar-text: #f1f5f9;
+  --sidebar-text-secondary: #94a3b8;
+  --sidebar-hover: #1e293b;
+  
+  --input-bg: #1e293b;
+  --input-border: #334155;
+  --input-focus-border: #3b82f6;
+  
+  --button-primary-bg: #3498db;
+  --button-primary-text: #ffffff;
+  --button-secondary-bg: #2d2d2d;
+  --button-secondary-text: #e9ecef;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-base: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* Deprecation mappings - for backward compatibility */
+:root {
+  /* Map old variable names to new ones */
+  --background-primary: var(--bg-primary);
+  --background-secondary: var(--bg-secondary);
+  --background-tertiary: var(--bg-tertiary);
+  --primary-color: var(--color-primary);
+  --button-primary-background: var(--button-primary-bg);
+  --button-primary-text: var(--button-primary-text);
+  --button-primary-hover: var(--color-primary-hover);
+  --button-secondary-background: var(--button-secondary-bg);
+  --button-secondary-text: var(--button-secondary-text);
+  --button-secondary-hover: var(--bg-tertiary);
+  --border-color: var(--border-base);
+  --shadow-md: var(--shadow-base);
+  --card-background: var(--bg-primary);
+  --background-color: var(--bg-primary);
+}

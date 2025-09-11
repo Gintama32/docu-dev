@@ -18,6 +18,10 @@ function Experience() {
   const [q, setQ] = useState('');
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  
+  // Filter states
+  const [clientFilter, setClientFilter] = useState('');
+  const [contactFilter, setContactFilter] = useState('');
   const [form, setForm] = useState({
     project_name: '',
     project_description: '',
@@ -49,6 +53,23 @@ function Experience() {
       setLoading(false);
     }
   };
+
+  // Filter items based on search and filters
+  const filteredItems = useMemo(() => {
+    if (!items) return [];
+    
+    return items.filter(item => {
+      const matchesSearch = !q.trim() || 
+        item.project_name?.toLowerCase().includes(q.toLowerCase()) ||
+        item.project_description?.toLowerCase().includes(q.toLowerCase()) ||
+        item.location?.toLowerCase().includes(q.toLowerCase());
+      
+      const matchesClient = !clientFilter || item.client_id === parseInt(clientFilter);
+      const matchesContact = !contactFilter || item.contact_id === parseInt(contactFilter);
+      
+      return matchesSearch && matchesClient && matchesContact;
+    });
+  }, [items, q, clientFilter, contactFilter]);
 
   const resetForm = () => {
     setEditing(null);
@@ -131,37 +152,51 @@ function Experience() {
         <button className="button-primary" onClick={() => { resetForm(); setShowForm(true); }}>New Experience</button>
       </div>
 
-      <div className="proposals-filters">
-        <div className="filter-group" style={{ minWidth: 240 }}>
-          <label>Search</label>
-          <input
-            type="search"
-            placeholder="Search experiences..."
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            onKeyDown={(e)=>{ if(e.key==='Enter') fetchList(q); }}
-          />
-        </div>
-        <div className="filter-group">
-          <label>Client</label>
-          <select value={form.client_id} onChange={e=>setForm(f=>({...f, client_id: e.target.value}))}>
-            <option value="">All clients</option>
-            {clients.map(c => (<option key={c.id} value={c.id}>{c.client_name}</option>))}
-          </select>
-        </div>
-        <div className="filter-group">
-          <label>Contact</label>
-          <select value={form.contact_id} onChange={e=>setForm(f=>({...f, contact_id: e.target.value}))}>
-            <option value="">All contacts</option>
-            {contacts.map(ct => (<option key={ct.id} value={ct.id}>{ct.contact_name}</option>))}
-          </select>
-        </div>
-        <div className="filter-group" style={{ alignSelf: 'flex-end' }}>
-          <button className="button-secondary" onClick={()=>fetchList(q)} disabled={loading}>Apply</button>
+      <div className="filters-section">
+        <div className="filters-row">
+          <div className="filter-group">
+            <label>Search:</label>
+            <input
+              type="search"
+              placeholder="Search experiences..."
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+          </div>
+          <div className="filter-group">
+            <label>Client:</label>
+            <select value={clientFilter} onChange={(e) => setClientFilter(e.target.value)}>
+              <option value="">All Clients</option>
+              {clients.map(c => (<option key={c.id} value={c.id}>{c.client_name}</option>))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <label>Contact:</label>
+            <select value={contactFilter} onChange={(e) => setContactFilter(e.target.value)}>
+              <option value="">All Contacts</option>
+              {contacts.map(ct => (<option key={ct.id} value={ct.id}>{ct.contact_name}</option>))}
+            </select>
+          </div>
+          <button 
+            className="button-secondary" 
+            onClick={() => {
+              setQ('');
+              setClientFilter('');
+              setContactFilter('');
+            }}
+          >
+            Clear Filters
+          </button>
         </div>
       </div>
+      
+      {/* Results count */}
+      <div className="results-info">
+        Showing {filteredItems.length} of {items.length} experiences
+      </div>
 
-      <div className="proposals-list">
+      {/* Desktop Table View */}
+      <div className="desktop-resume-table">
         <div className="unified-table-container">
           <div className="unified-grid-table">
             <div className="unified-grid-header experience-grid">
@@ -170,8 +205,16 @@ function Experience() {
               <div>Duration</div>
               <div>Actions</div>
             </div>
-            {items.map((item) => (
-              <div key={item.id} className="unified-grid-row experience-grid">
+            
+            {filteredItems.length === 0 ? (
+              <div className="unified-grid-row">
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                  {items.length === 0 ? 'No experiences found. Add your first experience!' : 'No experiences match your filters.'}
+                </div>
+              </div>
+            ) : (
+              filteredItems.map((item) => (
+                <div key={item.id} className="unified-grid-row experience-grid">
                 <div className="table-primary-text">
                   <strong>{item.project_name}</strong>
                   {item.project_description && (
@@ -211,8 +254,9 @@ function Experience() {
                   <button className="table-action-edit" onClick={() => onEdit(item)}>Edit</button>
                   <button className="table-action-delete" onClick={() => onDelete(item)}>Delete</button>
                 </div>
-              </div>
-            ))}
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

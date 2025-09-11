@@ -88,6 +88,33 @@
   border-bottom: none;
 }
 
+/* Experience Details Styling */
+.project-description {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.experience-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  min-width: fit-content;
+}
+
 /* Common table elements */
 .table-no-data {
   text-align: center;

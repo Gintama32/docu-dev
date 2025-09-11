@@ -259,3 +259,4 @@ function EducationSection({ profile, onUpdate, onSave }) {
 export default EducationSection;
 
 
+
