@@ -6,6 +6,7 @@ import Confirm from '../components/Confirm';
 import { useToast } from '../components/Toast';
 import '../App.css';
 import './Proposals.css';
+import '../components/UnifiedTable.css';
 
 function Clients() {
   const toast = useToast();
@@ -164,46 +165,36 @@ function Clients() {
   };
 
   return (
-    <div className="page">
-      <div className="page-header">
+    <div className="proposals-page">
+      <div className="proposals-header">
         <h1>Clients</h1>
-        <div className="actions">
+        <div className="header-actions">
           <button className="button-primary" onClick={handleCreate}>
             Add Client
           </button>
         </div>
       </div>
 
-      {/* Search and filters */}
-      <div className="filters-section">
-        <div className="filters-row">
-          <div className="filter-group">
-            <label>Search:</label>
-            <input
-              type="text"
-              placeholder="Search clients..."
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
-          </div>
-          <button 
-            className="button-secondary" 
-            onClick={() => setQ('')}
-          >
-            Clear
+      <div className="proposals-filters">
+        <div className="filter-group" style={{ minWidth: 240 }}>
+          <label>Search</label>
+          <input 
+            type="search" 
+            placeholder="Search clients..." 
+            value={q} 
+            onChange={(e) => setQ(e.target.value)} 
+            onKeyDown={(e) => { if(e.key === 'Enter') fetchList(q); }}
+          />
+        </div>
+        <div className="filter-group" style={{ alignSelf: 'flex-end' }}>
+          <button className="button-secondary" onClick={() => fetchList(q)} disabled={loading}>
+            Apply
           </button>
         </div>
       </div>
 
-      {/* Results count */}
-      <div className="results-info">
-        Showing {filteredItems.length} of {items.length} clients
-      </div>
-
-      {/* Desktop Table View */}
-      <div className="desktop-resume-table">
-        <div className="unified-table-container">
-          <div className="unified-grid-table">
+      <div className="unified-table-container">
+        <div className="unified-grid-table">
             <div className="unified-grid-header clients-grid">
               <div>Client Name</div>
               <div>Website</div>
