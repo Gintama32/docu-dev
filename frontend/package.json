@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && node scripts/post-build.cjs",
+    "build": "tsc && vite build",
     "build:local": "tsc && vite build",
+    "start": "node server.js",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "type-check": "tsc --noEmit",
@@ -19,6 +20,7 @@
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
+    "express": "^4.18.2",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.1",
     "@mui/material": "^7.3.1",
