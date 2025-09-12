@@ -32,16 +32,10 @@ function Clients() {
     fetchList();
   }, []);
 
-  const fetchList = async (query, forceRefresh = false) => {
+  const fetchList = async (query) => {
     setLoading(true);
     try {
-      let data;
-      if (forceRefresh) {
-        // Force refresh - bypass cache
-        data = await refreshClients();
-      } else {
-        data = await getClients(query?.trim());
-      }
+      const data = await getClients(query?.trim());
       setItems(data || []);
     } finally {
       setLoading(false);
@@ -50,11 +44,11 @@ function Clients() {
 
   const filteredItems = useMemo(() => {
     if (!q.trim()) return items;
-    const query = q.toLowerCase();
-    return items.filter((item) =>
-      item.client_name?.toLowerCase().includes(query) ||
-      item.main_email?.toLowerCase().includes(query) ||
-      item.website?.toLowerCase().includes(query)
+    const searchTerm = q.toLowerCase();
+    return items.filter(item => 
+      item.client_name?.toLowerCase().includes(searchTerm) ||
+      item.website?.toLowerCase().includes(searchTerm) ||
+      item.main_email?.toLowerCase().includes(searchTerm)
     );
   }, [items, q]);
 
@@ -76,34 +70,35 @@ function Clients() {
     setShowForm(true);
   };
 
-  const handleEdit = (item) => {
+  const handleEdit = (client) => {
     setForm({
-      client_name: item.client_name || '',
-      website: item.website || '',
-      main_email: item.main_email || '',
-      main_phone: item.main_phone || '',
-      last_contact_date: item.last_contact_date || '',
-      last_project_date: item.last_project_date || '',
-      main_contact_id: item.main_contact_id || null,
+      client_name: client.client_name || '',
+      website: client.website || '',
+      main_email: client.main_email || '',
+      main_phone: client.main_phone || '',
+      last_contact_date: client.last_contact_date || '',
+      last_project_date: client.last_project_date || '',
+      main_contact_id: client.main_contact_id || null,
     });
-    setEditing(item);
+    setEditing(client);
     setShowForm(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     try {
-      // Clean form data - convert empty strings to null for optional fields
+      // Clean up form data
       const cleanedForm = {
-        ...form,
-        website: form.website.trim() || null,
-        main_email: form.main_email.trim() || null, 
-        main_phone: form.main_phone.trim() || null,
+        client_name: form.client_name?.trim(),
+        website: form.website?.trim() || null,
+        main_email: form.main_email?.trim() || null,
+        main_phone: form.main_phone?.trim() || null,
         last_contact_date: form.last_contact_date || null,
         last_project_date: form.last_project_date || null,
         main_contact_id: form.main_contact_id || null,
       };
-      
       
       const response = editing 
         ? await api.request(`/api/clients/${editing.id}`, {
@@ -116,14 +111,7 @@ function Clients() {
           });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('API error:', errorData);
-        
-        // Show detailed validation errors
-        if (errorData.detail && Array.isArray(errorData.detail)) {
-          const errors = errorData.detail.map(err => `${err.loc?.join('.')} - ${err.msg}`).join('; ');
-          throw new Error(`Validation errors: ${errors}`);
-        }
+        const errorData = await response.json().catch(() => ({}));
         
         throw new Error(errorData.detail || 'Failed to save client');
       }
@@ -135,27 +123,33 @@ function Clients() {
       resetForm();
       
       // Force refresh to show new client immediately
-      await fetchList(null, true);
+      await refreshClients();
+      fetchList(q);
+
     } catch (error) {
       console.error('Error saving client:', error);
-      toast.error(error.message || 'Failed to save client');
+      toast.error('Failed to save client: ' + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    
     try {
-      const response = await api.request(`/api/clients/${id}`, { method: 'DELETE' });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to delete client');
+      const response = await api.request(`/api/clients/${deleteId}`, { method: 'DELETE' });
+      if (response.ok) {
+        toast.success('Client deleted successfully');
+        await refreshClients();
+        fetchList(q);
+      } else {
+        toast.error('Failed to delete client');
       }
-      
-      toast.success('Client deleted successfully');
-      // Force refresh to update list immediately
-      await fetchList(null, true);
     } catch (error) {
-      console.error('Error deleting client:', error);
-      toast.error(error.message || 'Failed to delete client');
+      toast.error('Failed to delete client: ' + error.message);
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -195,56 +189,55 @@ function Clients() {
 
       <div className="unified-table-container">
         <div className="unified-grid-table">
-            <div className="unified-grid-header clients-grid">
-              <div>Client Name</div>
-              <div>Website</div>
-              <div>Email</div>
-              <div>Last Contact</div>
-              <div>Actions</div>
+          <div className="unified-grid-header clients-grid">
+            <div>Client Name</div>
+            <div>Website</div>
+            <div>Email</div>
+            <div>Last Contact</div>
+            <div>Actions</div>
+          </div>
+          
+          {filteredItems.length === 0 ? (
+            <div className="unified-grid-row">
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                {items.length === 0 ? 'No clients found. Add your first client!' : 'No clients match your search.'}
+              </div>
             </div>
-            
-            {filteredItems.length === 0 ? (
-              <div className="unified-grid-row">
-                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-                  {items.length === 0 ? 'No clients found. Add your first client!' : 'No clients match your search.'}
+          ) : (
+            filteredItems.map((client) => (
+              <div 
+                key={client.id} 
+                className="unified-grid-row clients-grid"
+              >
+                <div className="table-primary-text">{client.client_name}</div>
+                <div className="table-secondary-text">
+                  {client.website ? (
+                    <a href={client.website} target="_blank" rel="noopener noreferrer">
+                      {client.website}
+                    </a>
+                  ) : 'N/A'}
+                </div>
+                <div className="table-secondary-text">{client.main_email || 'N/A'}</div>
+                <div className="table-secondary-text">{formatDate(client.last_contact_date)}</div>
+                <div className="table-actions">
+                  <button 
+                    className="table-action-edit" 
+                    onClick={() => handleEdit(client)}
+                    title="Edit Client"
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    className="table-action-delete" 
+                    onClick={() => setDeleteId(client.id)}
+                    title="Delete Client"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
-            ) : (
-              filteredItems.map((client) => (
-                <div 
-                  key={client.id} 
-                  className="unified-grid-row clients-grid"
-                >
-                  <div className="table-primary-text">{client.client_name}</div>
-                  <div className="table-secondary-text">
-                    {client.website ? (
-                      <a href={client.website} target="_blank" rel="noopener noreferrer">
-                        {client.website}
-                      </a>
-                    ) : 'N/A'}
-                  </div>
-                  <div className="table-secondary-text">{client.main_email || 'N/A'}</div>
-                  <div className="table-secondary-text">{formatDate(client.last_contact_date)}</div>
-                  <div className="table-actions">
-                    <button 
-                      className="table-action-edit" 
-                      onClick={() => handleEdit(client)}
-                      title="Edit Client"
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      className="table-action-delete" 
-                      onClick={() => setDeleteId(client.id)}
-                      title="Delete Client"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+            ))
+          )}
         </div>
       </div>
 
@@ -281,7 +274,7 @@ function Clients() {
                 type="email"
                 value={form.main_email}
                 onChange={(e) => setForm({ ...form, main_email: e.target.value })}
-                placeholder="contact@client.com"
+                placeholder="contact@example.com"
               />
             </div>
 
@@ -295,43 +288,47 @@ function Clients() {
               />
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Last Contact Date</label>
-                <input
-                  type="date"
-                  value={form.last_contact_date}
-                  onChange={(e) => setForm({ ...form, last_contact_date: e.target.value })}
-                />
-              </div>
+            <div className="form-group">
+              <label>Last Contact Date</label>
+              <input
+                type="date"
+                value={form.last_contact_date}
+                onChange={(e) => setForm({ ...form, last_contact_date: e.target.value })}
+              />
+            </div>
 
-              <div className="form-group">
-                <label>Last Project Date</label>
-                <input
-                  type="date"
-                  value={form.last_project_date}
-                  onChange={(e) => setForm({ ...form, last_project_date: e.target.value })}
-                />
-              </div>
+            <div className="form-group">
+              <label>Last Project Date</label>
+              <input
+                type="date"
+                value={form.last_project_date}
+                onChange={(e) => setForm({ ...form, last_project_date: e.target.value })}
+              />
             </div>
 
             <div className="form-actions">
-              <button type="button" className="button-secondary" onClick={() => setShowForm(false)}>
-                Cancel
+              <button type="submit" className="button-primary" disabled={loading}>
+                {loading ? 'Saving...' : (editing ? 'Update Client' : 'Create Client')}
               </button>
-              <button type="submit" className="button-primary">
-                {editing ? 'Update' : 'Create'} Client
+              <button 
+                type="button" 
+                className="button-secondary" 
+                onClick={() => setShowForm(false)}
+                disabled={loading}
+              >
+                Cancel
               </button>
             </div>
           </form>
         </Modal>
       )}
 
-      {/* Delete Confirmation */}
       <Confirm
-        isOpen={!!deleteId}
+        open={!!deleteId}
+        destructive
+        confirmLabel="Delete"
         onConfirm={() => {
-          handleDelete(deleteId);
+          handleDelete();
           setDeleteId(null);
         }}
         onCancel={() => setDeleteId(null)}
