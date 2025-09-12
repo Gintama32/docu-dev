@@ -1,5 +1,6 @@
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from typing import Optional, List
 import json
 from datetime import datetime
@@ -55,14 +56,14 @@ async def upload_media(
 
         # Save to database
         db.execute(
-            """
+            text("""
             INSERT INTO media (
                 cloudinary_public_id, cloudinary_url, preview_url,
                 resource_type, format, width, height, pages, bytes,
                 uploaded_by, file_metadata
             ) VALUES (:public_id, :url, :preview_url, :resource_type, 
                      :format, :width, :height, :pages, :bytes, :user_id, :file_metadata)
-        """,
+        """),
             {
                 "public_id": result.get("storage_id"),
                 "url": result["url"],
@@ -84,16 +85,16 @@ async def upload_media(
             },
         )
 
-        media_id = db.execute("SELECT lastval()").scalar()
+        media_id = db.execute(text("SELECT lastval()")).scalar()
 
         # Associate with entity if provided
         if entity_type and entity_id:
             if entity_type == "project":
                 db.execute(
-                    """
+                    text("""
                     INSERT INTO project_media (project_id, media_id, media_type)
                     VALUES (:project_id, :media_id, :media_type)
-                """,
+                """),
                     {
                         "project_id": entity_id,
                         "media_id": media_id,
@@ -102,10 +103,10 @@ async def upload_media(
                 )
             elif entity_type == "profile":
                 db.execute(
-                    """
+                    text("""
                     INSERT INTO profile_media (profile_id, media_id, media_type)
                     VALUES (:profile_id, :media_id, :media_type)
-                """,
+                """),
                     {
                         "profile_id": entity_id,
                         "media_id": media_id,
@@ -114,10 +115,10 @@ async def upload_media(
                 )
             elif entity_type == "resume":
                 db.execute(
-                    """
+                    text("""
                     INSERT INTO resume_media (resume_id, media_id, media_type)
                     VALUES (:resume_id, :media_id, :media_type)
-                """,
+                """),
                     {
                         "resume_id": entity_id,
                         "media_id": media_id,
@@ -149,11 +150,11 @@ async def delete_media(
     """Delete media"""
     # Get media info
     media = db.execute(
-        """
+        text("""
         SELECT cloudinary_public_id, resource_type, uploaded_by, file_metadata
         FROM media
         WHERE id = :id
-    """,
+    """),
         {"id": media_id},
     ).fetchone()
 
@@ -171,7 +172,7 @@ async def delete_media(
         raise HTTPException(status_code=500, detail="Failed to delete from storage")
 
     # Delete from database (cascades to associations)
-    db.execute("DELETE FROM media WHERE id = :id", {"id": media_id})
+    db.execute(text("DELETE FROM media WHERE id = :id"), {"id": media_id})
     db.commit()
 
     return {"message": "Media deleted successfully"}
@@ -185,14 +186,14 @@ async def get_project_media(
 ) -> List[dict]:
     """Get all media for a project"""
     result = db.execute(
-        """
+        text("""
         SELECT m.id, m.cloudinary_url, m.preview_url, m.resource_type,
                m.format, m.file_metadata, pm.media_type, pm.display_order, pm.caption
         FROM media m
         JOIN project_media pm ON m.id = pm.media_id
         WHERE pm.project_id = :project_id
         ORDER BY pm.display_order, m.id
-    """,
+    """),
         {"project_id": project_id},
     ).fetchall()
 
@@ -227,14 +228,14 @@ async def get_profile_media(
 ) -> List[dict]:
     """Get all media for a profile"""
     result = db.execute(
-        """
+        text("""
         SELECT m.id, m.cloudinary_url, m.preview_url, m.resource_type,
                m.format, m.file_metadata, pm.media_type, pm.is_primary
         FROM media m
         JOIN profile_media pm ON m.id = pm.media_id
         WHERE pm.profile_id = :profile_id
         ORDER BY pm.is_primary DESC, m.id
-    """,
+    """),
         {"profile_id": profile_id},
     ).fetchall()
 
@@ -267,13 +268,13 @@ async def get_all_media(
 ) -> List[dict]:
     """Get all media for current user (for MediaPicker)"""
     result = db.execute(
-        """
+        text("""
         SELECT id, cloudinary_public_id, cloudinary_url, preview_url, resource_type,
                format, file_metadata
         FROM media
         WHERE uploaded_by = :user_id
         ORDER BY uploaded_at DESC
-    """,
+    """),
         {"user_id": current_user.id},
     ).fetchall()
 
@@ -309,11 +310,11 @@ async def get_media_raw(
 ):
     """Get media raw URL (redirect to Cloudinary URL) - public endpoint for image display"""
     media = db.execute(
-        """
+        text("""
         SELECT cloudinary_url, resource_type, uploaded_by
         FROM media
         WHERE id = :id
-    """,
+    """),
         {"id": media_id},
     ).fetchone()
 

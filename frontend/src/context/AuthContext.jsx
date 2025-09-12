@@ -20,6 +20,17 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Check if user is logged in on app start
     if (token) {
+      // Try to restore user from localStorage first for immediate UI
+      const storedUser = localStorage.getItem('user_data');
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          localStorage.removeItem('user_data');
+        }
+      }
+      
+      // Then verify with backend (but don't logout on failure)
       checkAuthStatus();
     } else {
       setLoading(false);
@@ -44,17 +55,16 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
-      } else {
-        // Token is invalid, clear it
+        // Store user data for instant restore on refresh
+        localStorage.setItem('user_data', JSON.stringify(userData));
+      } else if (response.status === 401 || response.status === 403) {
+        // Only logout on definitive auth failures
         logout();
       }
+      // For other errors (500, network issues, etc.), keep user logged in
     } catch (error) {
-      // Don't logout on network errors, only on auth failures
-      if (error.message?.includes('fetch') || error.message?.includes('network')) {
-        setLoading(false);
-        return;
-      }
-      logout();
+      // Network errors, server down, etc. - keep user logged in
+      // The user data is already restored from localStorage above
     } finally {
       setLoading(false);
     }
@@ -72,6 +82,7 @@ export const AuthProvider = ({ children }) => {
         setToken(data.access_token);
         setUser(data.user);
         localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('user_data', JSON.stringify(data.user));
         
         // Return redirect path for post-login navigation
         const savedPath = redirectPath;
@@ -99,6 +110,7 @@ export const AuthProvider = ({ children }) => {
         setToken(data.access_token);
         setUser(data.user);
         localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('user_data', JSON.stringify(data.user));
         return { success: true };
       } else {
         const error = await response.json();
@@ -128,6 +140,7 @@ export const AuthProvider = ({ children }) => {
         setToken(data.access_token);
         setUser(data.user);
         localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('user_data', JSON.stringify(data.user));
         return { success: true };
       } else {
         const error = await response.json();
@@ -154,6 +167,7 @@ export const AuthProvider = ({ children }) => {
       setToken(null);
       setUser(null);
       localStorage.removeItem('access_token');
+      localStorage.removeItem('user_data');
       // Clear persisted selections to avoid stale state across sessions
       localStorage.removeItem('sherpa-gcm-selected-proposal');
       localStorage.removeItem('sherpa-gcm-selected-resume');
@@ -188,7 +202,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     loading,
-    isAuthenticated: !!user,
+    isAuthenticated: !!token && !!user, // Require both token and user data
     redirectPath,
     login,
     register,
