@@ -1,6 +1,5 @@
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import text
 from typing import Optional, List
 import json
 from datetime import datetime
@@ -54,77 +53,51 @@ async def upload_media(
             file.file, folder=f"images/{current_user.id}"
         )
 
-        # Save to database
-        db.execute(
-            text("""
-            INSERT INTO media (
-                cloudinary_public_id, cloudinary_url, preview_url,
-                resource_type, format, width, height, pages, bytes,
-                uploaded_by, file_metadata
-            ) VALUES (:public_id, :url, :preview_url, :resource_type, 
-                     :format, :width, :height, :pages, :bytes, :user_id, :file_metadata)
-        """),
-            {
-                "public_id": result.get("storage_id"),
-                "url": result["url"],
-                "preview_url": result.get("thumbnail_url"),
-                "resource_type": "image",
-                "format": result.get("format"),
-                "width": result.get("width"),
-                "height": result.get("height"),
-                "pages": result.get("pages"),
-                "bytes": result.get("bytes"),
-                "user_id": current_user.id,
-                "file_metadata": json.dumps(
-                    {
-                        "original_filename": file.filename,
-                        "uploaded_at": datetime.utcnow().isoformat(),
-                        "storage_type": result.get("storage_type"),
-                    }
-                ),
-            },
+        # Save to database using ORM
+        db_media = models.Media(
+            cloudinary_public_id=result.get("storage_id"),
+            cloudinary_url=result["url"],
+            preview_url=result.get("thumbnail_url"),
+            resource_type="image",
+            format=result.get("format"),
+            width=result.get("width"),
+            height=result.get("height"),
+            pages=result.get("pages"),
+            bytes=result.get("bytes"),
+            uploaded_by=current_user.id,
+            file_metadata={
+                "original_filename": file.filename,
+                "uploaded_at": datetime.utcnow().isoformat(),
+                "storage_type": result.get("storage_type"),
+            }
         )
+        db.add(db_media)
+        db.flush()  # Get the ID without committing
+        media_id = db_media.id
 
-        media_id = db.execute(text("SELECT lastval()")).scalar()
-
-        # Associate with entity if provided
+        # Associate with entity if provided using ORM
         if entity_type and entity_id:
             if entity_type == "project":
-                db.execute(
-                    text("""
-                    INSERT INTO project_media (project_id, media_id, media_type)
-                    VALUES (:project_id, :media_id, :media_type)
-                """),
-                    {
-                        "project_id": entity_id,
-                        "media_id": media_id,
-                        "media_type": media_type,
-                    },
+                db_project_media = models.ProjectMedia(
+                    project_id=entity_id,
+                    media_id=media_id,
+                    media_type=media_type
                 )
+                db.add(db_project_media)
             elif entity_type == "profile":
-                db.execute(
-                    text("""
-                    INSERT INTO profile_media (profile_id, media_id, media_type)
-                    VALUES (:profile_id, :media_id, :media_type)
-                """),
-                    {
-                        "profile_id": entity_id,
-                        "media_id": media_id,
-                        "media_type": media_type,
-                    },
+                db_profile_media = models.ProfileMedia(
+                    profile_id=entity_id,
+                    media_id=media_id,
+                    media_type=media_type
                 )
+                db.add(db_profile_media)
             elif entity_type == "resume":
-                db.execute(
-                    text("""
-                    INSERT INTO resume_media (resume_id, media_id, media_type)
-                    VALUES (:resume_id, :media_id, :media_type)
-                """),
-                    {
-                        "resume_id": entity_id,
-                        "media_id": media_id,
-                        "media_type": media_type,
-                    },
+                db_resume_media = models.ResumeMedia(
+                    resume_id=entity_id,
+                    media_id=media_id,
+                    media_type=media_type
                 )
+                db.add(db_resume_media)
 
         db.commit()
 
@@ -148,31 +121,24 @@ async def delete_media(
     current_user: models.User = Depends(get_current_user),
 ):
     """Delete media"""
-    # Get media info
-    media = db.execute(
-        text("""
-        SELECT cloudinary_public_id, resource_type, uploaded_by, file_metadata
-        FROM media
-        WHERE id = :id
-    """),
-        {"id": media_id},
-    ).fetchone()
+    # Get media info using ORM
+    media = db.query(models.Media).filter(models.Media.id == media_id).first()
 
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
 
     # Check permission
-    if media["uploaded_by"] != current_user.id and not current_user.is_admin:
+    if media.uploaded_by != current_user.id and not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Unauthorized")
 
     # Delete image from Cloudinary
-    deleted = storage_service.delete_image(media["cloudinary_public_id"])
+    deleted = storage_service.delete_image(media.cloudinary_public_id)
 
     if not deleted:
         raise HTTPException(status_code=500, detail="Failed to delete from storage")
 
-    # Delete from database (cascades to associations)
-    db.execute(text("DELETE FROM media WHERE id = :id"), {"id": media_id})
+    # Delete from database using ORM (cascades to associations)
+    db.delete(media)
     db.commit()
 
     return {"message": "Media deleted successfully"}
@@ -185,35 +151,33 @@ async def get_project_media(
     current_user: models.User = Depends(get_current_user),
 ) -> List[dict]:
     """Get all media for a project"""
-    result = db.execute(
-        text("""
-        SELECT m.id, m.cloudinary_url, m.preview_url, m.resource_type,
-               m.format, m.file_metadata, pm.media_type, pm.display_order, pm.caption
-        FROM media m
-        JOIN project_media pm ON m.id = pm.media_id
-        WHERE pm.project_id = :project_id
-        ORDER BY pm.display_order, m.id
-    """),
-        {"project_id": project_id},
-    ).fetchall()
+    # Use ORM with proper joins
+    project_media_query = db.query(
+        models.Media,
+        models.ProjectMedia.media_type,
+        models.ProjectMedia.display_order,
+        models.ProjectMedia.caption
+    ).join(
+        models.ProjectMedia, models.Media.id == models.ProjectMedia.media_id
+    ).filter(
+        models.ProjectMedia.project_id == project_id
+    ).order_by(
+        models.ProjectMedia.display_order.asc().nulls_last(),
+        models.Media.id
+    ).all()
 
     media_list = []
-    for row in result:
-        # Handle file_metadata JSON deserialization
-        file_metadata = row["file_metadata"] if isinstance(row["file_metadata"], dict) else (
-            json.loads(row["file_metadata"]) if row["file_metadata"] else {}
-        )
-        
+    for media, media_type, display_order, caption in project_media_query:
         media_item = {
-            "id": row["id"],
-            "url": row["cloudinary_url"],
-            "preview_url": row["preview_url"],
-            "resource_type": row["resource_type"],
-            "format": row["format"],
-            "file_metadata": file_metadata,
-            "media_type": row["media_type"],
-            "display_order": row["display_order"],
-            "caption": row["caption"],
+            "id": media.id,
+            "url": media.cloudinary_url,
+            "preview_url": media.preview_url,
+            "resource_type": media.resource_type,
+            "format": media.format,
+            "file_metadata": media.file_metadata or {},
+            "media_type": media_type,
+            "display_order": display_order,
+            "caption": caption,
         }
         media_list.append(media_item)
 
@@ -227,34 +191,31 @@ async def get_profile_media(
     current_user: models.User = Depends(get_current_user),
 ) -> List[dict]:
     """Get all media for a profile"""
-    result = db.execute(
-        text("""
-        SELECT m.id, m.cloudinary_url, m.preview_url, m.resource_type,
-               m.format, m.file_metadata, pm.media_type, pm.is_primary
-        FROM media m
-        JOIN profile_media pm ON m.id = pm.media_id
-        WHERE pm.profile_id = :profile_id
-        ORDER BY pm.is_primary DESC, m.id
-    """),
-        {"profile_id": profile_id},
-    ).fetchall()
+    # Use ORM with proper joins
+    profile_media_query = db.query(
+        models.Media,
+        models.ProfileMedia.media_type,
+        models.ProfileMedia.is_primary
+    ).join(
+        models.ProfileMedia, models.Media.id == models.ProfileMedia.media_id
+    ).filter(
+        models.ProfileMedia.profile_id == profile_id
+    ).order_by(
+        models.ProfileMedia.is_primary.desc(),
+        models.Media.id
+    ).all()
 
     media_list = []
-    for row in result:
-        # Handle file_metadata JSON deserialization
-        file_metadata = row["file_metadata"] if isinstance(row["file_metadata"], dict) else (
-            json.loads(row["file_metadata"]) if row["file_metadata"] else {}
-        )
-        
+    for media, media_type, is_primary in profile_media_query:
         media_item = {
-            "id": row["id"],
-            "url": row["cloudinary_url"],
-            "preview_url": row["preview_url"],
-            "resource_type": row["resource_type"],
-            "format": row["format"],
-            "file_metadata": file_metadata,
-            "media_type": row["media_type"],
-            "is_primary": row["is_primary"],
+            "id": media.id,
+            "url": media.cloudinary_url,
+            "preview_url": media.preview_url,
+            "resource_type": media.resource_type,
+            "format": media.format,
+            "file_metadata": media.file_metadata or {},
+            "media_type": media_type,
+            "is_primary": is_primary,
         }
         media_list.append(media_item)
 
@@ -267,35 +228,30 @@ async def get_all_media(
     current_user: models.User = Depends(get_current_user),
 ) -> List[dict]:
     """Get all media for current user (for MediaPicker)"""
-    result = db.execute(
-        text("""
-        SELECT id, cloudinary_public_id, cloudinary_url, preview_url, resource_type,
-               format, file_metadata
-        FROM media
-        WHERE uploaded_by = :user_id
-        ORDER BY uploaded_at DESC
-    """),
-        {"user_id": current_user.id},
-    ).fetchall()
+    # Use ORM query
+    media_objects = db.query(models.Media).filter(
+        models.Media.uploaded_by == current_user.id
+    ).order_by(
+        models.Media.uploaded_at.desc()
+    ).all()
 
     media_list = []
-    for row in result:
+    for media in media_objects:
         # For compatibility with MediaPicker, add media_uri field
-        # file_metadata might already be a dict (SQLAlchemy auto-deserializes JSON columns)
-        file_metadata = row["file_metadata"] if isinstance(row["file_metadata"], dict) else (
-            json.loads(row["file_metadata"]) if row["file_metadata"] else {}
-        )
-        original_filename = file_metadata.get("original_filename", f"media_{row['id']}")
+        file_metadata = media.file_metadata or {}
+        original_filename = file_metadata.get("original_filename", f"media_{media.id}")
         
         media_item = {
-            "id": row["id"],
-            "cloudinary_url": row["cloudinary_url"],
-            "preview_url": row["preview_url"],
-            "resource_type": row["resource_type"],
-            "format": row["format"],
+            "id": media.id,
+            "cloudinary_url": media.cloudinary_url,
+            "preview_url": media.preview_url,
+            "resource_type": media.resource_type,
+            "format": media.format,
             "file_metadata": file_metadata,
+            "width": media.width,
+            "height": media.height,
             # Legacy compatibility fields
-            "media_uri": row["cloudinary_url"],  # For MediaPicker compatibility
+            "media_uri": media.cloudinary_url,  # For MediaPicker compatibility
             "original_filename": original_filename,
         }
         media_list.append(media_item)
@@ -309,14 +265,8 @@ async def get_media_raw(
     db: Session = Depends(get_db),
 ):
     """Get media raw URL (redirect to Cloudinary URL) - public endpoint for image display"""
-    media = db.execute(
-        text("""
-        SELECT cloudinary_url, resource_type, uploaded_by
-        FROM media
-        WHERE id = :id
-    """),
-        {"id": media_id},
-    ).fetchone()
+    # Use ORM query
+    media = db.query(models.Media).filter(models.Media.id == media_id).first()
 
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
@@ -326,6 +276,6 @@ async def get_media_raw(
 
     # Redirect to the actual media URL
     from fastapi.responses import RedirectResponse
-    return RedirectResponse(url=media["cloudinary_url"], status_code=307)
+    return RedirectResponse(url=media.cloudinary_url, status_code=307)
 
 
