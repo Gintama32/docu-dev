@@ -7,7 +7,8 @@ function MediaUpload({
   onUploadComplete, 
   entityType, 
   entityId, 
-  mediaType = 'attachment',
+  mediaType = 'general',  // Media category: 'project', 'profile', 'general'
+  attachmentType = 'attachment',  // Association type: 'attachment', 'avatar', etc.
   accept = 'image/*',
   maxSize = 10 * 1024 * 1024 // 10MB
 }) {
@@ -60,7 +61,8 @@ function MediaUpload({
       formData.append('file', file);
       if (entityType) formData.append('entity_type', entityType);
       if (entityId) formData.append('entity_id', entityId);
-      formData.append('media_type', mediaType);
+      formData.append('media_type', mediaType);  // Category: project/profile/general
+      formData.append('attachment_type', attachmentType);  // Association type
 
       const { response, data } = await api.json('/api/media/upload', {
         method: 'POST',

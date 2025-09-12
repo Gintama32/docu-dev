@@ -153,6 +153,7 @@ class Media(Base):
     cloudinary_url = Column(Text, nullable=False)
     preview_url = Column(Text)  # Thumbnail for images, first page for PDFs
     resource_type = Column(String(20), nullable=False)  # 'image' or 'pdf'
+    media_type = Column(String(50), nullable=False, default='general')  # 'project', 'profile', 'general'
     format = Column(String(20))
     width = Column(Integer)
     height = Column(Integer)

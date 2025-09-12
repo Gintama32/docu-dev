@@ -409,13 +409,14 @@ function Projects() {
                 <div className="project-media-content">
                   <div style={{ marginBottom: 'var(--space-md)' }}>
                     <h3>Upload New Media</h3>
-                    <MediaUpload
-                      onUploadComplete={handleMediaUploadComplete}
-                      entityType="project"
-                      entityId={editing?.id}
-                      mediaType="attachment"
-                      accept="image/*"
-                    />
+                  <MediaUpload
+                    onUploadComplete={handleMediaUploadComplete}
+                    entityType="project"
+                    entityId={editing?.id}
+                    mediaType="project"
+                    attachmentType="attachment"
+                    accept="image/*"
+                  />
                   </div>
                   
                   <div>

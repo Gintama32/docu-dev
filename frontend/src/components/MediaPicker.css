@@ -27,6 +27,43 @@
   padding: var(--space-xs) var(--space-sm) !important;
 }
 
+.media-picker-filters {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.filter-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+}
+
+.filter-btn.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: white;
+  font-weight: var(--font-semibold);
+}
+
+/* Dark mode override for better contrast */
+@media (prefers-color-scheme: dark) {
+  .filter-btn.active {
+    color: var(--text-primary);
+  }
+}
+
 .media-picker-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));

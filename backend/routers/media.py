@@ -27,11 +27,12 @@ async def upload_media(
     file: UploadFile = File(...),
     entity_type: Optional[str] = Form(None),
     entity_id: Optional[int] = Form(None),
-    media_type: Optional[str] = Form("attachment"),
+    media_type: Optional[str] = Form("general"),  # 'project', 'profile', 'general'
+    attachment_type: Optional[str] = Form("attachment"),  # For association tables
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    """Upload image to Cloudinary"""
+    """Upload image to Cloudinary with categorization"""
     # Validate file size
     content = await file.read()
     if len(content) > MAX_FILE_SIZE:
@@ -65,6 +66,7 @@ async def upload_media(
             pages=result.get("pages"),
             bytes=result.get("bytes"),
             uploaded_by=current_user.id,
+            media_type=media_type,  # 'project', 'profile', or 'general'
             file_metadata={
                 "original_filename": file.filename,
                 "uploaded_at": datetime.utcnow().isoformat(),
@@ -81,21 +83,21 @@ async def upload_media(
                 db_project_media = models.ProjectMedia(
                     project_id=entity_id,
                     media_id=media_id,
-                    media_type=media_type
+                    media_type=attachment_type  # Use attachment_type for associations
                 )
                 db.add(db_project_media)
             elif entity_type == "profile":
                 db_profile_media = models.ProfileMedia(
                     profile_id=entity_id,
                     media_id=media_id,
-                    media_type=media_type
+                    media_type=attachment_type  # Use attachment_type for associations
                 )
                 db.add(db_profile_media)
             elif entity_type == "resume":
                 db_resume_media = models.ResumeMedia(
                     resume_id=entity_id,
                     media_id=media_id,
-                    media_type=media_type
+                    media_type=attachment_type  # Use attachment_type for associations
                 )
                 db.add(db_resume_media)
 
@@ -224,16 +226,20 @@ async def get_profile_media(
 
 @router.get("/")
 async def get_all_media(
+    media_type: Optional[str] = None,  # Filter by 'project', 'profile', 'general', or None for all
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ) -> List[dict]:
-    """Get all media for current user (for MediaPicker)"""
-    # Use ORM query
-    media_objects = db.query(models.Media).filter(
+    """Get all media for current user (for MediaPicker) with optional filtering"""
+    # Use ORM query with optional media_type filter
+    query = db.query(models.Media).filter(
         models.Media.uploaded_by == current_user.id
-    ).order_by(
-        models.Media.uploaded_at.desc()
-    ).all()
+    )
+    
+    if media_type:
+        query = query.filter(models.Media.media_type == media_type)
+    
+    media_objects = query.order_by(models.Media.uploaded_at.desc()).all()
 
     media_list = []
     for media in media_objects:
@@ -246,6 +252,7 @@ async def get_all_media(
             "cloudinary_url": media.cloudinary_url,
             "preview_url": media.preview_url,
             "resource_type": media.resource_type,
+            "media_type": media.media_type,  # Include the new category
             "format": media.format,
             "file_metadata": file_metadata,
             "width": media.width,

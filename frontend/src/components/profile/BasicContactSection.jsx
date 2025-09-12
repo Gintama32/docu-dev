@@ -284,6 +284,7 @@ function BasicContactSection({ profile, onUpdate, onSave: _onSave }) {
           <MediaPicker 
             value={localData.main_image_id} 
             onChange={(id) => handleChange('main_image_id', id)} 
+            mediaType="profile"
           />
           <small className="form-help">
             This image will be used as your profile photo in resumes and personnel listings
@@ -298,7 +299,8 @@ function BasicContactSection({ profile, onUpdate, onSave: _onSave }) {
               onUploadComplete={handleUploadComplete}
               entityType="profile"
               entityId={profile.id}
-              mediaType="avatar"
+              mediaType="profile"
+              attachmentType="avatar"
               accept="image/*"
             />
           </div>

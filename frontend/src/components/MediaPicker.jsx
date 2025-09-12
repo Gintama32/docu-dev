@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import './MediaPicker.css';
 
-function MediaPicker({ value, onChange }) {
+function MediaPicker({ value, onChange, mediaType = null, showFilters = true }) {
   const [items, setItems] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState(mediaType || 'all');
 
   const backendBase = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE) || 'http://localhost:8001';
   const toAbsolute = (uri) => {
@@ -14,9 +15,10 @@ function MediaPicker({ value, onChange }) {
     return uri;
   };
 
-  const reload = async () => {
+  const reload = async (filterType = selectedFilter) => {
     try {
-      const { response, data } = await api.json('/api/media');
+      const queryParam = filterType && filterType !== 'all' ? `?media_type=${filterType}` : '';
+      const { response, data } = await api.json(`/api/media${queryParam}`);
       if (response.ok) {
         setItems(data || []);
       }
@@ -35,6 +37,7 @@ function MediaPicker({ value, onChange }) {
     try {
       const form = new FormData();
       form.append('file', file);
+      form.append('media_type', selectedFilter && selectedFilter !== 'all' ? selectedFilter : 'general');
       const res = await api.request('/api/media/upload', { method: 'POST', body: form });
       if (res.ok) {
         const media = await res.json();
@@ -59,6 +62,26 @@ function MediaPicker({ value, onChange }) {
           <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
         </label>
       </div>
+      
+      {showFilters && (
+        <div className="media-picker-filters">
+          {['all', 'project', 'profile', 'general'].map((filter) => (
+            <button
+              key={filter}
+              className={`filter-btn ${selectedFilter === filter ? 'active' : ''}`}
+              onClick={() => {
+                setSelectedFilter(filter);
+                reload(filter);
+              }}
+            >
+              {filter === 'all' ? 'All Images' : 
+               filter === 'project' ? 'Project Images' :
+               filter === 'profile' ? 'Profile Images' : 
+               'General Images'}
+            </button>
+          ))}
+        </div>
+      )}
       
       {items.length > 0 ? (
         <div className="media-picker-grid">
