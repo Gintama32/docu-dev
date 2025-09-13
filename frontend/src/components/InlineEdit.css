@@ -1,0 +1,113 @@
+.inline-edit {
+  position: relative;
+  display: inline-block;
+  min-width: 100px;
+}
+
+.inline-edit-display {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  cursor: pointer;
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-base);
+  border: 1px solid transparent;
+}
+
+.inline-edit-display:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-light);
+}
+
+.edit-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  color: var(--text-secondary);
+  stroke-width: 2;
+}
+
+.inline-edit-display:hover .edit-icon {
+  opacity: 1;
+}
+
+.inline-edit-input-container {
+  position: relative;
+  display: inline-block;
+  min-width: 200px;
+}
+
+.inline-edit-input {
+  width: 100%;
+  padding: var(--space-xs) var(--space-sm);
+  border: 2px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: inherit;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.inline-edit-input:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.inline-edit-hint {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: var(--space-xs);
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  background: var(--bg-primary);
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+}
+
+/* Special styling for resume headers */
+.inline-edit.resume-title .inline-edit-display {
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  padding: var(--space-sm);
+}
+
+.inline-edit.resume-title .inline-edit-input {
+  font-size: inherit;
+  font-weight: inherit;
+  background: white;
+  border: 2px solid var(--accent-primary);
+}
+
+/* Special styling for table cells */
+.inline-edit.table-name .inline-edit-display {
+  width: 100%;
+  justify-content: flex-start;
+  padding: var(--space-xs);
+}
+
+.inline-edit.table-name .inline-edit-input-container {
+  width: 100%;
+  min-width: 150px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .inline-edit-hint {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 90vw;
+    text-align: center;
+  }
+}

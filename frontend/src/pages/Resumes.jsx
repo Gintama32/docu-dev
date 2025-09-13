@@ -12,6 +12,7 @@ import PersonalizeContentTab from '../components/PersonalizeContentTab';
 import ResumeEditorTab from '../components/ResumeEditorTab';
 import MobileResumeList from '../components/MobileResumeList';
 import MobileTabNavigation from '../components/MobileTabNavigation';
+import InlineEdit from '../components/InlineEdit';
 import '../components/UnifiedTable.css';
 
 function Resumes() {
@@ -461,6 +462,35 @@ function Resumes() {
     return resume.alias || `Resume #${resume.id}`;
   };
 
+  const handleResumeNameSave = async (newName, resumeToUpdate) => {
+    try {
+      const response = await api.request(`/api/resumes/${resumeToUpdate.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ alias: newName })
+      });
+
+      if (response.ok) {
+        // Update the resume in the list
+        setResumes(prev => prev.map(r => 
+          r.id === resumeToUpdate.id ? { ...r, alias: newName } : r
+        ));
+        
+        // Update selected resume if it's the one being edited
+        if (selectedResume?.id === resumeToUpdate.id) {
+          setSelectedResume(prev => ({ ...prev, alias: newName }));
+        }
+        
+        toast.success('Resume name updated');
+      } else {
+        toast.error('Failed to update resume name');
+        throw new Error('Failed to update resume name');
+      }
+    } catch (error) {
+      toast.error('Failed to update resume name');
+      throw error;
+    }
+  };
+
   if (authLoading || loading) {
     return <div className="loading-indicator">Loading...</div>;
   }
@@ -486,7 +516,15 @@ function Resumes() {
               ← Back to Resumes
             </button>
             <div className="resume-title-info">
-              <h1>{getDisplayName(selectedResume)}</h1>
+              <h1>
+                <InlineEdit
+                  value={selectedResume.alias || ''}
+                  onSave={(newName) => handleResumeNameSave(newName, selectedResume)}
+                  placeholder={`Resume #${selectedResume.id}`}
+                  className="resume-title"
+                  maxLength={100}
+                />
+              </h1>
             </div>
           </div>
           
@@ -604,11 +642,28 @@ function Resumes() {
               <div 
                 key={resume.id} 
                 className="unified-grid-row resumes-grid resume-row"
-                onClick={() => handleEditResume(resume)}
                 style={{ cursor: 'pointer' }}
                 title="Click to edit resume"
               >
-                <div className="table-primary-text">{getDisplayName(resume, index)}</div>
+                <div 
+                  className="table-primary-text"
+                  onClick={(e) => {
+                    // Don't trigger row click when editing name
+                    if (e.target.closest('.inline-edit')) {
+                      e.stopPropagation();
+                      return;
+                    }
+                    handleEditResume(resume);
+                  }}
+                >
+                  <InlineEdit
+                    value={resume.alias || ''}
+                    onSave={(newName) => handleResumeNameSave(newName, resume)}
+                    placeholder={`Resume #${resume.id}`}
+                    className="table-name"
+                    maxLength={100}
+                  />
+                </div>
                 <div>
                   {resume.user_profile_id ? (
                     (() => {
