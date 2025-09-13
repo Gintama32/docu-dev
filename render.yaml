@@ -8,7 +8,11 @@ services:
     healthCheckPath: /ping
   - type: web
     name: documaker-frontend
-    env: node
+    env: static
     buildCommand: cd frontend && yarn install --frozen-lockfile && yarn build
-    startCommand: cd frontend && yarn start
+    staticPublishPath: frontend/dist
     autoDeploy: true
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
