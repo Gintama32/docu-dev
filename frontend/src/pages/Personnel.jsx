@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
-
+import { api } from '../lib/api';
 import Confirm from '../components/Confirm';
 import { useToast } from '../components/Toast';
 import '../App.css';
@@ -11,7 +11,7 @@ import '../components/UnifiedTable.css';
 function Personnel() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { getProfiles } = useData();
+  const { getProfiles, refreshProfiles } = useData();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState('');
@@ -25,13 +25,43 @@ function Personnel() {
     }
   }, []);
 
-  const fetchList = async (query) => {
+  // Refresh profiles when component regains focus (after editing)
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (!document.hidden) {
+        await refreshProfiles(); // Clear cache first
+        fetchList();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [q]);
+
+  const fetchList = async () => {
     setLoading(true);
     try {
-      const data = await getProfiles(query?.trim());
+      const data = await getProfiles(); // Get all profiles, filter client-side
       setItems(data || []);
     } finally { setLoading(false); }
   };
+
+  // Client-side filtering for better UX
+  const filteredItems = useMemo(() => {
+    if (!items) return [];
+    
+    if (!q.trim()) return items;
+    
+    const searchTerm = q.toLowerCase();
+    return items.filter(item => 
+      item.full_name?.toLowerCase().includes(searchTerm) ||
+      item.first_name?.toLowerCase().includes(searchTerm) ||
+      item.last_name?.toLowerCase().includes(searchTerm) ||
+      item.current_title?.toLowerCase().includes(searchTerm) ||
+      item.department?.toLowerCase().includes(searchTerm) ||
+      item.email?.toLowerCase().includes(searchTerm)
+    );
+  }, [items, q]);
 
   const onDelete = async (item) => {
     setConfirmDeleteId(item.id);
@@ -40,14 +70,22 @@ function Personnel() {
   const confirmDelete = async () => {
     const id = confirmDeleteId;
     if (!id) return;
-    const response = await api.request(`/api/user-profiles/${id}`, { method: 'DELETE' });
-    if (response.ok) {
-      fetchList(q);
-      toast.success('Profile deleted');
-    } else {
-      toast.error('Failed to delete profile');
+    
+    try {
+      const response = await api.request(`/api/user-profiles/${id}`, { method: 'DELETE' });
+      if (response.ok) {
+        await refreshProfiles(); // Clear cache
+        fetchList();
+        toast.success('Profile deleted');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(`Failed to delete profile: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      toast.error(`Failed to delete profile: ${error.message}`);
+    } finally {
+      setConfirmDeleteId(null);
     }
-    setConfirmDeleteId(null);
   };
 
   return (
@@ -67,11 +105,28 @@ function Personnel() {
       <div className="proposals-filters">
         <div className="filter-group" style={{ minWidth: 240 }}>
           <label>Search</label>
-          <input className="search-field" type="search" placeholder="Search profiles..." value={q} onChange={(e)=>setQ(e.target.value)} onKeyDown={(e)=>{ if(e.key==='Enter') fetchList(q); }} />
+          <input 
+            className="search-field" 
+            type="search" 
+            placeholder="Search profiles..." 
+            value={q} 
+            onChange={(e) => setQ(e.target.value)} 
+          />
         </div>
         <div className="filter-group" style={{ alignSelf: 'flex-end' }}>
-          <button className="button-secondary" onClick={()=>fetchList(q)} disabled={loading}>Apply</button>
+          <button 
+            className="button-secondary" 
+            onClick={() => setQ('')} 
+            disabled={!q.trim()}
+          >
+            Clear Filters
+          </button>
         </div>
+      </div>
+
+      {/* Results count */}
+      <div className="results-info" style={{ padding: '0 var(--space-lg)', marginBottom: 'var(--space-md)', color: 'var(--text-secondary)', fontSize: 'var(--font-sm)' }}>
+        Showing {filteredItems.length} of {items.length} profiles
       </div>
 
       <div className="unified-table-container">
@@ -81,7 +136,7 @@ function Personnel() {
             <div>Name</div>
             <div>Actions</div>
           </div>
-          {items.map((item) => (
+          {filteredItems.map((item) => (
             <div key={item.id} className="unified-grid-row personnel-grid">
               <div>
                 {item.main_image_id ? (

@@ -1005,11 +1005,11 @@ button.button-primary,
 .proposal-toolbar {
   background-color: var(--toolbar-background);
   border-bottom: 1px solid var(--toolbar-border);
-  padding: 15px 30px;
+  padding: 15px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: -30px -30px 30px -30px; /* Adjust to fill content area top */
+  margin: -20px -20px 20px -20px; /* Adjust to fill content area top */
   color: var(--toolbar-text); /* Apply darker text color */
 }
 
@@ -2254,7 +2254,7 @@ button.button-primary,
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   padding-bottom: 15px;
   border-bottom: 1px solid var(--border-color);
 }
@@ -2276,7 +2276,7 @@ button.button-primary,
 }
 
 .empty-state p {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   font-size: 1.1em;
 }
 

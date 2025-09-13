@@ -295,6 +295,14 @@
   align-items: center !important;
 }
 
+/* Compact Projects grid when detail view is open */
+.projects-grid-compact {
+  grid-template-columns: 80px 2fr !important;
+  display: grid !important;
+  grid-gap: 16px !important;
+  align-items: center !important;
+}
+
 .projects-grid .table-actions {
   position: static !important;
   float: none !important;
@@ -302,6 +310,12 @@
   justify-content: flex-end !important;
   grid-column: 5 !important; /* Force into 5th column */
 }
+
+/* Clients-specific columns */
+.clients-grid { grid-template-columns: 2fr 1fr 1fr 200px; }
+
+/* Compact Clients grid when detail view is open */
+.clients-grid-compact { grid-template-columns: 1fr; }
 
 /* Personnel-specific columns */
 .personnel-grid { grid-template-columns: 120px 1fr 120px; }
@@ -334,37 +348,66 @@
   border-bottom-color: var(--accent-primary);
 }
 
-/* Project Detail Panel Layout */
+/* Project & Client Detail Panel Layout - Horizontal Split */
 .proposals-page.with-side-panel {
   display: flex;
-  gap: var(--space-lg);
-  height: calc(100vh - 80px);
-  overflow: hidden;
+  flex-direction: column;
+  min-height: calc(100vh - 80px);
+  overflow: visible;
 }
 
-.proposals-page.with-side-panel .projects-layout {
+.proposals-page.with-side-panel .projects-layout,
+.proposals-page.with-side-panel .clients-layout {
   display: flex;
+  flex-direction: column;
   flex: 1;
-  gap: var(--space-lg);
+  gap: 0; /* No extra gaps that could affect spacing */
 }
 
-.proposals-page.with-side-panel .projects-main {
-  flex: 0 0 60%;
+/* Ensure header spacing stays exactly the same */
+.proposals-page.with-side-panel .proposals-header {
+  margin-bottom: 20px !important;
+  padding-bottom: 20px !important;
+}
+
+/* Content area with horizontal split */
+.content-with-detail {
+  display: flex;
+  gap: var(--space-lg);
+  flex: 1;
+  min-height: 0;
+  align-items: flex-start;
+}
+
+.proposals-page.with-side-panel .projects-main,
+.proposals-page.with-side-panel .clients-main {
+  flex: 0 0 20%;
   min-width: 0;
   overflow-y: auto;
 }
 
+.selected-row {
+  background: #e3f2fd !important; /* Light blue background */
+  border-left: 3px solid #1976d2 !important; /* Blue left border */
+  color: var(--text-primary) !important;
+}
+
+.selected-row .table-primary-text {
+  color: #1976d2 !important; /* Blue text for emphasis */
+  font-weight: var(--font-semibold) !important;
+}
+
 .project-detail-panel {
-  flex: 0 0 40%;
+  flex: 0 0 80%;
   background: var(--bg-primary);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--border-base);
   display: flex;
   flex-direction: column;
-  height: fit-content;
-  max-height: calc(100vh - 120px);
-  overflow: hidden;
+  min-height: 500px;
+  max-height: none;
+  overflow: visible;
 }
 
 .detail-panel-header {
@@ -394,6 +437,8 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--space-lg);
+  min-height: 400px;
+  max-height: calc(100vh - 200px);
 }
 
 .detail-tabs {
@@ -457,6 +502,15 @@
   line-height: 1.4;
 }
 
+.project-info .info-item img {
+  max-width: 100%;
+  height: auto;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: var(--radius-base);
+  border: 1px solid var(--border-light);
+}
+
 .empty-media-state {
   padding: var(--space-xl);
   text-align: center;
@@ -465,6 +519,47 @@
   background: var(--bg-secondary);
   border-radius: var(--radius-md);
   border: 2px dashed var(--border-light);
+}
+
+/* Mobile/Desktop visibility classes */
+.mobile-only {
+  display: none;
+}
+
+.desktop-only {
+  display: block;
+}
+
+.mobile-only-modal {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block;
+  }
+  
+  .desktop-only {
+    display: none;
+  }
+  
+  .mobile-only-modal {
+    display: block;
+  }
+  
+  .proposals-page.with-side-panel .content-with-detail {
+    flex-direction: column;
+  }
+  
+  .proposals-page.with-side-panel .projects-main,
+  .proposals-page.with-side-panel .clients-main {
+    flex: none;
+  }
+  
+  .project-detail-panel {
+    flex: none;
+    max-height: 60vh;
+  }
 }
 
 .table-action-view {

@@ -27,28 +27,37 @@ function Clients() {
     last_project_date: '',
     main_contact_id: null,
   });
+  
+  // Detail view state (like Projects)
+  const [showDetailView, setShowDetailView] = useState(false);
+  const [detailViewMode, setDetailViewMode] = useState('view'); // 'view' or 'edit'
 
   useEffect(() => {
     fetchList();
   }, []);
 
-  const fetchList = async (query) => {
+  const fetchList = async () => {
     setLoading(true);
     try {
-      const data = await getClients(query?.trim());
+      const data = await getClients(); // Get all clients, filter client-side
       setItems(data || []);
     } finally {
       setLoading(false);
     }
   };
 
+  // Client-side filtering for better UX (moved to be with other logic)
   const filteredItems = useMemo(() => {
+    if (!items) return [];
+    
     if (!q.trim()) return items;
+    
     const searchTerm = q.toLowerCase();
     return items.filter(item => 
       item.client_name?.toLowerCase().includes(searchTerm) ||
       item.website?.toLowerCase().includes(searchTerm) ||
-      item.main_email?.toLowerCase().includes(searchTerm)
+      item.main_email?.toLowerCase().includes(searchTerm) ||
+      item.main_phone?.toLowerCase().includes(searchTerm)
     );
   }, [items, q]);
 
@@ -67,7 +76,9 @@ function Clients() {
 
   const handleCreate = () => {
     resetForm();
-    setShowForm(true);
+    setEditing(null); // No existing client
+    setDetailViewMode('edit');
+    setShowDetailView(true);
   };
 
   const handleEdit = (client) => {
@@ -81,7 +92,29 @@ function Clients() {
       main_contact_id: client.main_contact_id || null,
     });
     setEditing(client);
-    setShowForm(true);
+    setDetailViewMode('edit');
+    setShowDetailView(true);
+  };
+
+  const handleView = (client) => {
+    setForm({
+      client_name: client.client_name || '',
+      website: client.website || '',
+      main_email: client.main_email || '',
+      main_phone: client.main_phone || '',
+      last_contact_date: client.last_contact_date || '',
+      last_project_date: client.last_project_date || '',
+      main_contact_id: client.main_contact_id || null,
+    });
+    setEditing(client);
+    setDetailViewMode('view');
+    setShowDetailView(true);
+  };
+
+  const resetDetailView = () => {
+    setEditing(null);
+    setShowDetailView(false);
+    setDetailViewMode('view');
   };
 
   const handleSubmit = async (e) => {
@@ -119,12 +152,19 @@ function Clients() {
       const clientData = await response.json();
 
       toast.success(editing ? 'Client updated successfully' : 'Client created successfully');
-      setShowForm(false);
-      resetForm();
+      
+      if (editing) {
+        // Update the editing object and switch to view mode
+        setEditing({ ...editing, ...cleanedForm });
+        setDetailViewMode('view');
+      } else {
+        // New client created, close detail view
+        resetDetailView();
+      }
       
       // Force refresh to show new client immediately
       await refreshClients();
-      fetchList(q);
+      fetchList();
 
     } catch (error) {
       console.error('Error saving client:', error);
@@ -142,7 +182,7 @@ function Clients() {
       if (response.ok) {
         toast.success('Client deleted successfully');
         await refreshClients();
-        fetchList(q);
+        fetchList();
       } else {
         toast.error('Failed to delete client');
       }
@@ -159,43 +199,56 @@ function Clients() {
   };
 
   return (
-    <div className="proposals-page">
-      <div className="proposals-header">
-        <h1>Clients</h1>
-        <div className="header-actions">
-          <button className="button-primary" onClick={handleCreate}>
-            Add Client
-          </button>
-        </div>
-      </div>
-
-      <div className="proposals-filters">
-        <div className="filter-group" style={{ minWidth: 240 }}>
-          <label>Search</label>
-          <input 
-            type="search" 
-            placeholder="Search clients..." 
-            value={q} 
-            onChange={(e) => setQ(e.target.value)} 
-            onKeyDown={(e) => { if(e.key === 'Enter') fetchList(q); }}
-          />
-        </div>
-        <div className="filter-group" style={{ alignSelf: 'flex-end' }}>
-          <button className="button-secondary" onClick={() => fetchList(q)} disabled={loading}>
-            Apply
-          </button>
-        </div>
-      </div>
-
-      <div className="unified-table-container">
-        <div className="unified-grid-table">
-          <div className="unified-grid-header clients-grid">
-            <div>Client Name</div>
-            <div>Website</div>
-            <div>Email</div>
-            <div>Last Contact</div>
-            <div>Actions</div>
+    <div className={`proposals-page ${showDetailView ? 'with-side-panel' : ''}`}>
+      <div className="clients-layout">
+        {/* Header spans full width */}
+        <div className="proposals-header">
+          <h1>Clients</h1>
+          <div className="header-actions">
+            <button className="button-primary" onClick={handleCreate}>
+              Add Client
+            </button>
           </div>
+        </div>
+
+        {/* Filters span full width */}
+        <div className="proposals-filters">
+          <div className="filter-group" style={{ minWidth: 240 }}>
+            <label>Search</label>
+            <input 
+              type="search" 
+              placeholder="Search clients..." 
+              value={q} 
+              onChange={(e) => setQ(e.target.value)} 
+            />
+          </div>
+          <div className="filter-group" style={{ alignSelf: 'flex-end' }}>
+            <button 
+              className="button-secondary" 
+              onClick={() => setQ('')} 
+              disabled={!q.trim()}
+            >
+              Clear Filters
+            </button>
+          </div>
+        </div>
+
+        {/* Results count spans full width */}
+        <div className="results-info" style={{ padding: '0 var(--space-lg)', marginBottom: 'var(--space-md)', color: 'var(--text-secondary)', fontSize: 'var(--font-sm)' }}>
+          Showing {filteredItems.length} of {items.length} clients
+        </div>
+
+        {/* Content area: table + detail view split */}
+        <div className={showDetailView ? 'content-with-detail' : ''}>
+          <div className="clients-main">
+            <div className="unified-table-container">
+            <div className="unified-grid-table">
+              <div className={`unified-grid-header ${showDetailView ? 'clients-grid-compact' : 'clients-grid'}`}>
+                <div>Client Name</div>
+                {!showDetailView && <div>Email</div>}
+                {!showDetailView && <div>Last Contact</div>}
+                {!showDetailView && <div>Actions</div>}
+              </div>
           
           {filteredItems.length === 0 ? (
             <div className="unified-grid-row">
@@ -207,45 +260,214 @@ function Clients() {
             filteredItems.map((client) => (
               <div 
                 key={client.id} 
-                className="unified-grid-row clients-grid"
+                className={`unified-grid-row ${showDetailView ? 'clients-grid-compact' : 'clients-grid'} ${editing?.id === client.id && showDetailView ? 'selected-row' : ''}`}
+                onClick={() => handleView(client)}
+                style={{ cursor: 'pointer' }}
               >
-                <div className="table-primary-text">{client.client_name}</div>
-                <div className="table-secondary-text">
-                  {client.website ? (
-                    <a href={client.website} target="_blank" rel="noopener noreferrer">
-                      {client.website}
-                    </a>
-                  ) : 'N/A'}
+                <div className="table-primary-text">
+                  {client.client_name}
                 </div>
-                <div className="table-secondary-text">{client.main_email || 'N/A'}</div>
-                <div className="table-secondary-text">{formatDate(client.last_contact_date)}</div>
-                <div className="table-actions">
+                {!showDetailView && (
+                  <div className="table-secondary-text">
+                    {client.main_email || 'N/A'}
+                  </div>
+                )}
+                {!showDetailView && (
+                  <div className="table-secondary-text">
+                    {formatDate(client.last_contact_date)}
+                  </div>
+                )}
+                {!showDetailView && (
+                  <div className="table-actions">
+                    <button className="table-action-view" onClick={(e) => { e.stopPropagation(); handleView(client); }}>View</button>
+                    <button className="table-action-edit" onClick={(e) => { e.stopPropagation(); handleEdit(client); }}>Edit</button>
+                    <button className="table-action-delete" onClick={(e) => { e.stopPropagation(); setDeleteId(client.id); }}>Delete</button>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+              </div>
+            </div>
+          </div>
+
+          {/* Client Detail View Panel - 80% width */}
+          {showDetailView && (
+          <div className="project-detail-panel">
+            <div className="detail-panel-header">
+              <div className="detail-panel-title">
+                <h2>{editing ? editing.client_name : 'New Client'}</h2>
+                <div className="detail-panel-actions">
+                  {!editing ? (
+                    // New client mode
+                    <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+                      <button 
+                        className="button-secondary"
+                        onClick={resetDetailView}
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        className="button-primary"
+                        onClick={handleSubmit}
+                      >
+                        Create Client
+                      </button>
+                    </div>
+                  ) : detailViewMode === 'view' ? (
+                    // View mode for existing client
+                    <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+                      <button 
+                        className="button-primary"
+                        onClick={() => setDetailViewMode('edit')}
+                      >
+                        Edit Client
+                      </button>
+                      <button 
+                        className="button-danger"
+                        onClick={() => setDeleteId(editing.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ) : (
+                    // Edit mode for existing client
+                    <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+                      <button 
+                        className="button-secondary"
+                        onClick={() => setDetailViewMode('view')}
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        className="button-primary"
+                        onClick={handleSubmit}
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+                  )}
                   <button 
-                    className="table-action-edit" 
-                    onClick={() => handleEdit(client)}
-                    title="Edit Client"
+                    className="button-tertiary"
+                    onClick={resetDetailView}
                   >
-                    Edit
-                  </button>
-                  <button 
-                    className="table-action-delete" 
-                    onClick={() => setDeleteId(client.id)}
-                    title="Delete Client"
-                  >
-                    Delete
+                    ✕
                   </button>
                 </div>
               </div>
-            ))
+            </div>
+
+            <div className="detail-panel-content">
+              {!editing || detailViewMode === 'edit' ? (
+                // Edit Mode (for new client or editing existing)
+                <div className="client-edit-form">
+                  <div className="form-grid">
+                    <div className="form-group full-width">
+                      <label>Client Name *</label>
+                      <input
+                        type="text"
+                        value={form.client_name}
+                        onChange={(e) => setForm({ ...form, client_name: e.target.value })}
+                        required
+                        placeholder="Enter client name"
+                      />
+                    </div>
+                    <div className="form-group full-width">
+                      <label>Website</label>
+                      <input
+                        type="url"
+                        value={form.website}
+                        onChange={(e) => setForm({ ...form, website: e.target.value })}
+                        placeholder="https://example.com"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Main Email</label>
+                      <input
+                        type="email"
+                        value={form.main_email}
+                        onChange={(e) => setForm({ ...form, main_email: e.target.value })}
+                        placeholder="contact@example.com"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Main Phone</label>
+                      <input
+                        type="tel"
+                        value={form.main_phone}
+                        onChange={(e) => setForm({ ...form, main_phone: e.target.value })}
+                        placeholder="+1 (555) 123-4567"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Last Contact Date</label>
+                      <input
+                        type="date"
+                        value={form.last_contact_date}
+                        onChange={(e) => setForm({ ...form, last_contact_date: e.target.value })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Last Project Date</label>
+                      <input
+                        type="date"
+                        value={form.last_project_date}
+                        onChange={(e) => setForm({ ...form, last_project_date: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // View Mode
+                <div className="client-info">
+                  <div className="info-section">
+                    <h3>Client Information</h3>
+                    <div className="info-grid">
+                      <div className="info-item">
+                        <label>Client Name</label>
+                        <p>{editing.client_name}</p>
+                      </div>
+                      <div className="info-item">
+                        <label>Website</label>
+                        <p>
+                          {editing.website ? (
+                            <a href={editing.website} target="_blank" rel="noopener noreferrer">
+                              {editing.website}
+                            </a>
+                          ) : 'Not specified'}
+                        </p>
+                      </div>
+                      <div className="info-item">
+                        <label>Main Email</label>
+                        <p>{editing.main_email || 'Not specified'}</p>
+                      </div>
+                      <div className="info-item">
+                        <label>Main Phone</label>
+                        <p>{editing.main_phone || 'Not specified'}</p>
+                      </div>
+                      <div className="info-item">
+                        <label>Last Contact Date</label>
+                        <p>{formatDate(editing.last_contact_date)}</p>
+                      </div>
+                      <div className="info-item">
+                        <label>Last Project Date</label>
+                        <p>{formatDate(editing.last_project_date)}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
           )}
         </div>
       </div>
 
-      {/* Create/Edit Modal */}
+      {/* Modal for mobile devices only */}
       {showForm && (
-        <Modal onClose={() => setShowForm(false)}>
+        <Modal onClose={() => setShowForm(false)} className="mobile-only-modal">
           <form onSubmit={handleSubmit}>
-            <h3>{editing ? 'Edit Client' : 'Add New Client'}</h3>
+            <h3>Add New Client</h3>
             
             <div className="form-group">
               <label>Client Name *</label>
