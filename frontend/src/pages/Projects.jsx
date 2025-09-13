@@ -5,8 +5,6 @@ import Modal from '../components/Modal';
 import Confirm from '../components/Confirm';
 import { useToast } from '../components/Toast';
 import MediaPicker from '../components/MediaPicker';
-import MediaUpload from '../components/MediaUpload';
-import MediaGallery from '../components/MediaGallery';
 import '../App.css';
 import './Proposals.css';
 import '../components/UnifiedTable.css';
@@ -26,9 +24,7 @@ function Projects() {
     main_image_id: '',
   });
   
-  // Media management states
-  const [projectMedia, setProjectMedia] = useState([]);
-  const [showMediaTab, setShowMediaTab] = useState(false);
+  // Note: Media management removed - now handled via MediaPicker only
   
   // Detail view state
   const [showDetailView, setShowDetailView] = useState(false);
@@ -60,40 +56,12 @@ function Projects() {
   const resetForm = () => {
     setEditing(null);
     setForm({ name: '', description: '', date: '', contract_value: '', main_image_id: '' });
-    setProjectMedia([]);
-    setShowMediaTab(false);
+    // Media tab removed
     setShowDetailView(false);
     setDetailViewMode('view');
   };
 
-  // Load project media
-  const loadProjectMedia = async (projectId) => {
-    if (!projectId) return;
-    
-    try {
-      const { response, data } = await api.json(`/api/media/projects/${projectId}`);
-      if (response.ok) {
-        setProjectMedia(data || []);
-      } else {
-        setProjectMedia([]);
-      }
-    } catch (error) {
-      setProjectMedia([]);
-    }
-  };
-
-  const handleMediaUploadComplete = (uploadedMedia) => {
-    setProjectMedia(prev => [uploadedMedia, ...prev]);
-    toast.success('Media uploaded successfully!');
-  };
-
-  const handleMediaDelete = (mediaId) => {
-    setProjectMedia(prev => prev.filter(m => m.id !== mediaId));
-    // If this was the main image, clear it
-    if (form.main_image_id === mediaId) {
-      setForm(f => ({ ...f, main_image_id: '' }));
-    }
-  };
+  // Media management simplified - handled via MediaPicker only
 
   const onSubmit = async (e) => {
     if (e) e.preventDefault();
@@ -133,8 +101,7 @@ function Projects() {
       main_image_id: item.main_image_id || '',
     });
     
-    // Load project media
-    await loadProjectMedia(item.id);
+    // Media loading removed - handled by MediaPicker
     
     // Show detail view in edit mode
     setDetailViewMode('edit');
@@ -152,8 +119,7 @@ function Projects() {
       main_image_id: item.main_image_id || '',
     });
     
-    // Load project media
-    await loadProjectMedia(item.id);
+    // Media loading removed - handled by MediaPicker
     
     // Show detail view in view mode
     setDetailViewMode('view');
@@ -348,24 +314,6 @@ function Projects() {
             </div>
 
             <div className="detail-panel-content">
-              {editing && (
-                <div className="detail-tabs">
-                  <button 
-                    className={!showMediaTab ? 'active' : ''}
-                    onClick={() => setShowMediaTab(false)}
-                  >
-                    Details
-                  </button>
-                  <button 
-                    className={showMediaTab ? 'active' : ''}
-                    onClick={() => setShowMediaTab(true)}
-                  >
-                    Media ({projectMedia.length})
-                  </button>
-                </div>
-              )}
-
-              {!showMediaTab || !editing ? (
                 <div className="project-details-content">
                   {!editing ? (
                     // New Project Mode
@@ -461,37 +409,6 @@ function Projects() {
                     </div>
                   )}
                 </div>
-              ) : (
-                // Media Tab
-                <div className="project-media-content">
-                  <div style={{ marginBottom: 'var(--space-md)' }}>
-                    <h3>Upload New Media</h3>
-                  <MediaUpload
-                    onUploadComplete={handleMediaUploadComplete}
-                    entityType="project"
-                    entityId={editing?.id}
-                    mediaType="project"
-                    attachmentType="attachment"
-                    accept="image/*"
-                  />
-                  </div>
-                  
-                  <div>
-                    <h3>Project Media Gallery</h3>
-                    {projectMedia.length > 0 ? (
-                      <MediaGallery
-                        media={projectMedia}
-                        onDelete={handleMediaDelete}
-                        showCaptions={true}
-                      />
-                    ) : (
-                      <div className="empty-media-state">
-                        No media uploaded for this project yet.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
           )}
