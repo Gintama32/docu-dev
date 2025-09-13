@@ -324,6 +324,115 @@ async def get_all_media(
     return media_list
 
 
+@router.get("/cloudinary/browse")
+async def browse_cloudinary(
+    folder: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Browse images in Cloudinary that aren't in our database yet"""
+    try:
+        import cloudinary.api
+        
+        # Get images from Cloudinary
+        search_params = {
+            'resource_type': 'image',
+            'max_results': 50,
+        }
+        
+        if folder:
+            search_params['prefix'] = folder
+            
+        result = cloudinary.api.resources(**search_params)
+        
+        # Get existing public_ids from our database to filter out already imported images
+        existing_public_ids = set()
+        existing_media = db.query(models.Media.cloudinary_public_id).all()
+        for media in existing_media:
+            existing_public_ids.add(media[0])
+        
+        # Filter out images that are already in our database
+        available_images = []
+        for resource in result.get('resources', []):
+            if resource['public_id'] not in existing_public_ids:
+                available_images.append({
+                    'public_id': resource['public_id'],
+                    'url': resource['secure_url'],
+                    'width': resource.get('width'),
+                    'height': resource.get('height'),
+                    'format': resource.get('format'),
+                    'bytes': resource.get('bytes'),
+                    'created_at': resource.get('created_at'),
+                })
+        
+        return {
+            'images': available_images,
+            'total': len(available_images)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to browse Cloudinary: {str(e)}")
+
+
+@router.post("/cloudinary/import")
+async def import_from_cloudinary(
+    public_id: str = Form(...),
+    media_type: str = Form('general'),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Import an existing Cloudinary image into our database"""
+    try:
+        import cloudinary.api
+        
+        # Get image details from Cloudinary
+        resource = cloudinary.api.resource(public_id)
+        
+        # Check if already exists in our database
+        existing = db.query(models.Media).filter(
+            models.Media.cloudinary_public_id == public_id
+        ).first()
+        
+        if existing:
+            raise HTTPException(status_code=409, detail="Image already imported")
+        
+        # Create media record in database
+        db_media = models.Media(
+            cloudinary_public_id=resource['public_id'],
+            cloudinary_url=resource['secure_url'],
+            preview_url=resource.get('secure_url'),  # Use same URL for preview
+            resource_type="image",
+            media_type=media_type,
+            format=resource.get('format'),
+            width=resource.get('width'),
+            height=resource.get('height'),
+            bytes=resource.get('bytes'),
+            uploaded_by=current_user.id,
+            file_metadata={
+                'original_filename': resource['public_id'].split('/')[-1],
+                'imported_at': datetime.utcnow().isoformat(),
+                'storage_type': 'cloudinary',
+                'imported_from': 'cloudinary_browse',
+            }
+        )
+        db.add(db_media)
+        db.commit()
+        db.refresh(db_media)
+        
+        return {
+            'id': db_media.id,
+            'url': db_media.cloudinary_url,
+            'public_id': db_media.cloudinary_public_id,
+            'message': 'Image imported successfully'
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to import image: {str(e)}")
+
+
 @router.get("/{media_id}/raw")
 async def get_media_raw(
     media_id: int,

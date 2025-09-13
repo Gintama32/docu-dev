@@ -6,6 +6,9 @@ function MediaPicker({ value, onChange, mediaType = null, showFilters = true, en
   const [items, setItems] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState(mediaType || 'all');
+  const [showCloudinaryBrowser, setShowCloudinaryBrowser] = useState(false);
+  const [cloudinaryImages, setCloudinaryImages] = useState([]);
+  const [browsing, setBrowsing] = useState(false);
 
   const backendBase = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE) || 'http://localhost:8001';
   const toAbsolute = (uri) => {
@@ -54,6 +57,45 @@ function MediaPicker({ value, onChange, mediaType = null, showFilters = true, en
     }
   };
 
+  const browseCloudinary = async () => {
+    setBrowsing(true);
+    try {
+      const { response, data } = await api.json('/api/media/cloudinary/browse');
+      if (response.ok) {
+        setCloudinaryImages(data.images || []);
+        setShowCloudinaryBrowser(true);
+      }
+    } catch (error) {
+      console.error('Failed to browse Library:', error);
+    } finally {
+      setBrowsing(false);
+    }
+  };
+
+  const importFromCloudinary = async (cloudinaryImage) => {
+    try {
+      const formData = new FormData();
+      formData.append('public_id', cloudinaryImage.public_id);
+      formData.append('media_type', selectedFilter !== 'all' ? selectedFilter : mediaType || 'general');
+      
+      const { response, data } = await api.json('/api/media/cloudinary/import', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (response.ok) {
+        // Refresh the media list and select the imported image
+        await reload();
+        if (onChange) onChange(data.id);
+        setShowCloudinaryBrowser(false);
+      } else {
+        console.error('Import failed:', data);
+      }
+    } catch (error) {
+      console.error('Failed to import image:', error);
+    }
+  };
+
   useEffect(() => { 
     // Set initial filter based on mediaType prop
     if (mediaType && !showFilters) {
@@ -89,10 +131,29 @@ function MediaPicker({ value, onChange, mediaType = null, showFilters = true, en
     <div className="media-picker">
       <div className="media-picker-header">
         <h4>Select Image</h4>
-        <label className="button-secondary upload-button" style={{ cursor: 'pointer' }}>
-          {uploading ? 'Uploading…' : 'Upload New'}
-          <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
-        </label>
+        <div className="picker-actions">
+          <button 
+            className="button-secondary upload-button"
+            onClick={() => document.getElementById('media-upload-input').click()}
+            disabled={uploading}
+          >
+            {uploading ? 'Uploading…' : 'Upload New'}
+          </button>
+          <input 
+            id="media-upload-input"
+            type="file" 
+            accept="image/*" 
+            onChange={handleFileChange} 
+            style={{ display: 'none' }} 
+          />
+          <button 
+            className="button-tertiary browse-button"
+            onClick={browseCloudinary}
+            disabled={browsing}
+          >
+            {browsing ? 'Loading...' : 'Browse Cloudinary'}
+          </button>
+        </div>
       </div>
       
       {showFilters && (
@@ -173,6 +234,63 @@ function MediaPicker({ value, onChange, mediaType = null, showFilters = true, en
           >
             Clear Selection
           </button>
+        </div>
+      )}
+      
+      {/* Cloudinary Browser Modal */}
+      {showCloudinaryBrowser && (
+        <div className="cloudinary-browser-modal">
+          <div className="modal-overlay" onClick={() => setShowCloudinaryBrowser(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Browse Image Library</h3>
+                <button 
+                  className="modal-close-button"
+                  onClick={() => setShowCloudinaryBrowser(false)}
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="modal-body">
+                {cloudinaryImages.length > 0 ? (
+                  <div className="cloudinary-grid">
+                    {cloudinaryImages.map((image) => (
+                      <div 
+                        key={image.public_id}
+                        className="cloudinary-item"
+                        onClick={() => importFromCloudinary(image)}
+                      >
+                        <div className="cloudinary-thumbnail">
+                          <img 
+                            src={image.url} 
+                            alt={image.public_id}
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="cloudinary-info">
+                          <p className="cloudinary-filename">
+                            {image.public_id.split('/').pop()}
+                          </p>
+                          <p className="cloudinary-details">
+                            {image.width}×{image.height} • {image.format?.toUpperCase()}
+                          </p>
+                        </div>
+                        <div className="import-overlay">
+                          <span>Click to Import</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-cloudinary">
+                    <p>No new images found in Cloudinary</p>
+                    <p>All available images are already imported</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
