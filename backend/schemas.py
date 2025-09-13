@@ -365,7 +365,7 @@ class UserProfileBase(BaseModel):
     email: Optional[EmailStr] = None
     mobile: Optional[str] = Field(None, max_length=50)
     address: Optional[str] = Field(None, max_length=500)
-    about_url: Optional[HttpUrl] = None
+    about_url: Optional[str] = None
 
     # Collections
     certifications: Optional[List[CertificationItem]] = []
@@ -397,7 +397,7 @@ class UserProfileUpdate(BaseModel):
     email: Optional[EmailStr] = None
     mobile: Optional[str] = Field(None, max_length=50)
     address: Optional[str] = Field(None, max_length=500)
-    about_url: Optional[HttpUrl] = None
+    about_url: Optional[str] = None
 
     # Collections
     certifications: Optional[List[CertificationItem]] = None

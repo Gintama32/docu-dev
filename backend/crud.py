@@ -250,9 +250,14 @@ def update_user_profile(
                 return obj
             
             value = convert_dates(value)
-        elif key == "about_url" and hasattr(value, '__str__'):
-            # Convert HttpUrl objects to strings
-            value = str(value)
+        elif key == "about_url":
+            # Handle HttpUrl objects and None values properly
+            if value is None:
+                value = None  # Keep as None, don't convert to string
+            elif hasattr(value, '__str__') and str(value) != 'None':
+                value = str(value)  # Convert HttpUrl to string
+            else:
+                value = None  # Convert "None" string or invalid values to None
 
         setattr(db_prof, key, value)
 
