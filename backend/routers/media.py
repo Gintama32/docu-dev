@@ -53,6 +53,21 @@ async def upload_media(
         result = storage_service.upload_image(
             file.file, folder=f"images/{current_user.id}"
         )
+        
+        # Check for duplicates within the same media_type
+        existing_media = db.query(models.Media).filter(
+            models.Media.cloudinary_public_id == result.get("storage_id"),
+            models.Media.media_type == media_type,
+            models.Media.uploaded_by == current_user.id
+        ).first()
+        
+        if existing_media:
+            # Delete the uploaded image from Cloudinary since it's a duplicate
+            storage_service.delete_image(result.get("storage_id"))
+            raise HTTPException(
+                status_code=409, 
+                detail=f"This image already exists in your {media_type} media library"
+            )
 
         # Save to database using ORM
         db_media = models.Media(
@@ -123,27 +138,70 @@ async def delete_media(
     current_user: models.User = Depends(get_current_user),
 ):
     """Delete media"""
-    # Get media info using ORM
-    media = db.query(models.Media).filter(models.Media.id == media_id).first()
+    try:
+        # Get media info using ORM
+        media = db.query(models.Media).filter(models.Media.id == media_id).first()
 
-    if not media:
-        raise HTTPException(status_code=404, detail="Media not found")
+        if not media:
+            raise HTTPException(status_code=404, detail="Media not found")
 
-    # Check permission
-    if media.uploaded_by != current_user.id and not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Unauthorized")
+        # Check permission
+        if media.uploaded_by != current_user.id and not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="Unauthorized")
+            
+        print(f"DEBUG: Attempting to delete media {media_id}, public_id: {media.cloudinary_public_id}")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"DEBUG: Error accessing media {media_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error accessing media: {str(e)}")
 
-    # Delete image from Cloudinary
-    deleted = storage_service.delete_image(media.cloudinary_public_id)
+    try:
+        print(f"DEBUG: Clearing foreign key references for media {media_id}")
+        
+        # First, clear any main_image_id references to this media
+        profile_updates = db.query(models.UserProfile).filter(
+            models.UserProfile.main_image_id == media_id
+        ).update({"main_image_id": None})
+        print(f"DEBUG: Cleared {profile_updates} profile references")
+        
+        # Update projects that reference this media  
+        project_updates = db.query(models.Project).filter(
+            models.Project.main_image_id == media_id
+        ).update({"main_image_id": None})
+        print(f"DEBUG: Cleared {project_updates} project references")
+        
+        # Commit the reference clearing
+        db.commit()
+        print(f"DEBUG: Committed reference clearing")
+        
+        # Delete image from Cloudinary (non-blocking)
+        print(f"DEBUG: Deleting from Cloudinary: {media.cloudinary_public_id}")
+        try:
+            deleted = storage_service.delete_image(media.cloudinary_public_id)
+            if deleted:
+                print(f"DEBUG: Cloudinary delete successful")
+            else:
+                print(f"DEBUG: Cloudinary delete failed, but continuing with database delete")
+        except Exception as cloudinary_error:
+            print(f"DEBUG: Cloudinary delete error: {cloudinary_error}, but continuing with database delete")
 
-    if not deleted:
-        raise HTTPException(status_code=500, detail="Failed to delete from storage")
+        # Delete from database using ORM (associations will cascade delete automatically)
+        print(f"DEBUG: Deleting from database")
+        db.delete(media)
+        db.commit()
+        print(f"DEBUG: Database delete successful")
 
-    # Delete from database using ORM (cascades to associations)
-    db.delete(media)
-    db.commit()
-
-    return {"message": "Media deleted successfully"}
+        return {"message": "Media deleted successfully"}
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
+    except Exception as e:
+        # Log and handle unexpected errors
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete media: {str(e)}")
 
 
 @router.get("/projects/{project_id}")

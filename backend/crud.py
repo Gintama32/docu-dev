@@ -234,9 +234,25 @@ def update_user_profile(
     update_data = profile_update.dict(exclude_unset=True)
 
     for key, value in update_data.items():
-        # Handle JSON fields: convert None to empty list
+        # Handle JSON fields: convert None to empty list and fix date serialization
         if key in ["skills", "certifications", "education"] and value is None:
             value = []
+        elif key in ["skills", "certifications", "education"] and isinstance(value, list):
+            # Convert any date objects to strings in JSON fields
+            def convert_dates(obj):
+                from datetime import date, datetime
+                if isinstance(obj, dict):
+                    return {k: convert_dates(v) for k, v in obj.items()}
+                elif isinstance(obj, list):
+                    return [convert_dates(item) for item in obj]
+                elif isinstance(obj, (date, datetime)):
+                    return obj.isoformat() if isinstance(obj, datetime) else obj.strftime('%Y-%m-%d')
+                return obj
+            
+            value = convert_dates(value)
+        elif key == "about_url" and hasattr(value, '__str__'):
+            # Convert HttpUrl objects to strings
+            value = str(value)
 
         setattr(db_prof, key, value)
 
