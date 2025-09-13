@@ -197,15 +197,22 @@ def get_user_profiles(
 
 
 def get_user_profiles_for_user(
-    db: Session, user_id: int, skip: int = 0, limit: int = 100
+    db: Session, user_id: int, skip: int = 0, limit: int = 100, q: str | None = None
 ):
-    return (
-        db.query(models.UserProfile)
-        .filter(models.UserProfile.user_id == user_id)
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
+    query = db.query(models.UserProfile).filter(models.UserProfile.user_id == user_id)
+    
+    if q:
+        like = f"%{q}%"
+        # Search across multiple fields for better results
+        query = query.filter(
+            models.UserProfile.full_name.ilike(like) |
+            models.UserProfile.first_name.ilike(like) |
+            models.UserProfile.last_name.ilike(like) |
+            models.UserProfile.current_title.ilike(like) |
+            models.UserProfile.department.ilike(like)
+        )
+    
+    return query.offset(skip).limit(limit).all()
 
 
 def create_user_profile(db: Session, profile: schemas.UserProfileCreate):

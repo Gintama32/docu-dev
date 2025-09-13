@@ -25,7 +25,7 @@ def list_user_profiles(
 ):
     if only_mine and current_user:
         return crud.get_user_profiles_for_user(
-            db, user_id=current_user.id, skip=skip, limit=limit
+            db, user_id=current_user.id, skip=skip, limit=limit, q=q
         )
     return crud.get_user_profiles(db, skip=skip, limit=limit, q=q)
 
