@@ -103,6 +103,21 @@ function ProfilePage() {
             // Only send collections if they have valid data
             if (Array.isArray(value) && value.length === 0) {
               value = null; // Send null instead of empty array
+            } else if (Array.isArray(value)) {
+              // Convert date objects to ISO strings for JSON serialization
+              value = value.map(item => {
+                if (typeof item === 'object' && item !== null) {
+                  const cleanItem = { ...item };
+                  // Convert any date fields to ISO strings
+                  Object.keys(cleanItem).forEach(key => {
+                    if (cleanItem[key] instanceof Date) {
+                      cleanItem[key] = cleanItem[key].toISOString().split('T')[0]; // YYYY-MM-DD format
+                    }
+                  });
+                  return cleanItem;
+                }
+                return item;
+              });
             }
           }
           

@@ -450,7 +450,12 @@ function Projects() {
                         </div>
                         <div className="form-group full-width">
                           <label>Main Image</label>
-                          <MediaPicker value={form.main_image_id} onChange={(id) => setForm(f => ({ ...f, main_image_id: id }))} />
+                          <MediaPicker 
+                            value={form.main_image_id} 
+                            onChange={(id) => setForm(f => ({ ...f, main_image_id: id }))} 
+                            mediaType="project"
+                            showFilters={false}
+                          />
                         </div>
                       </div>
                     </div>

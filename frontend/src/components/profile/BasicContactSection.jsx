@@ -285,38 +285,14 @@ function BasicContactSection({ profile, onUpdate, onSave: _onSave }) {
             value={localData.main_image_id} 
             onChange={(id) => handleChange('main_image_id', id)} 
             mediaType="profile"
+            showFilters={false}
+            entityType="profile"
+            entityId={profile?.id}
           />
           <small className="form-help">
             This image will be used as your profile photo in resumes and personnel listings
           </small>
         </div>
-
-        {/* Upload New Media */}
-        {profile?.id && (
-          <div className="form-group">
-            <label>Upload New Media</label>
-            <MediaUpload
-              onUploadComplete={handleUploadComplete}
-              entityType="profile"
-              entityId={profile.id}
-              mediaType="profile"
-              attachmentType="avatar"
-              accept="image/*"
-            />
-          </div>
-        )}
-
-        {/* Media Gallery */}
-        {media.length > 0 && (
-          <div className="form-group">
-            <label>Profile Media Gallery</label>
-            <MediaGallery
-              media={media}
-              onDelete={handleMediaDelete}
-              showCaptions={false}
-            />
-          </div>
-        )}
 
         {profile?.id && media.length === 0 && (
           <div style={{ 

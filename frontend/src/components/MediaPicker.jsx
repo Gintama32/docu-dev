@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import './MediaPicker.css';
 
-function MediaPicker({ value, onChange, mediaType = null, showFilters = true }) {
+function MediaPicker({ value, onChange, mediaType = null, showFilters = true, entityType = null, entityId = null }) {
   const [items, setItems] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState(mediaType || 'all');
@@ -17,10 +17,36 @@ function MediaPicker({ value, onChange, mediaType = null, showFilters = true }) 
 
   const reload = async (filterType = selectedFilter) => {
     try {
-      const queryParam = filterType && filterType !== 'all' ? `?media_type=${filterType}` : '';
-      const { response, data } = await api.json(`/api/media${queryParam}`);
-      if (response.ok) {
-        setItems(data || []);
+      let endpoint = '/api/media';
+      
+      // If we're in a specific entity context, load associated media + all media of that type
+      if (entityType && entityId) {
+        // Load associated media for this entity
+        const associatedEndpoint = entityType === 'profile' ? 
+          `/api/media/profiles/${entityId}` : 
+          `/api/media/projects/${entityId}`;
+        
+        const { response: assocResponse, data: assocData } = await api.json(associatedEndpoint);
+        const associatedMedia = assocResponse.ok ? assocData || [] : [];
+        
+        // Also load all media of the specified type
+        const queryParam = filterType && filterType !== 'all' ? `?media_type=${filterType}` : '';
+        const { response, data } = await api.json(`/api/media${queryParam}`);
+        const allMedia = response.ok ? data || [] : [];
+        
+        // Combine and deduplicate
+        const mediaMap = new Map();
+        [...associatedMedia, ...allMedia].forEach(item => {
+          mediaMap.set(item.id, item);
+        });
+        setItems(Array.from(mediaMap.values()));
+      } else {
+        // Normal behavior - load all media with optional filter
+        const queryParam = filterType && filterType !== 'all' ? `?media_type=${filterType}` : '';
+        const { response, data } = await api.json(`/api/media${queryParam}`);
+        if (response.ok) {
+          setItems(data || []);
+        }
       }
     } catch (error) {
       // Silently handle errors - don't expose API details
@@ -28,7 +54,13 @@ function MediaPicker({ value, onChange, mediaType = null, showFilters = true }) 
     }
   };
 
-  useEffect(() => { reload(); }, []);
+  useEffect(() => { 
+    // Set initial filter based on mediaType prop
+    if (mediaType && !showFilters) {
+      setSelectedFilter(mediaType);
+    }
+    reload(); 
+  }, [mediaType]);
 
   const handleFileChange = async (e) => {
     const file = e.target.files && e.target.files[0];
