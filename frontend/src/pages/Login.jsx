@@ -18,7 +18,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 (async () => {
   try {
     await msalInstance.initialize();
-    console.error("MSAL initialized successfully");
+    console.log("MSAL initialized successfully");
   } catch (error) {
     console.error("MSAL initialization failed:", error);
   }
@@ -96,7 +96,8 @@ function Login({ showRedirectMessage = false }) {
       } else {
         setError(result.error);
       }
-    } catch {
+    } catch (err){
+      console.error("Error submitting form:", err);
       setError('An unexpected error occurred');
     } finally {
       setIsSubmitting(false);
@@ -125,7 +126,7 @@ function Login({ showRedirectMessage = false }) {
     const loginResponse = await msalInstance.loginPopup(msalLoginRequest);
     
     // Log the account object to see what's available
-    console.error("Microsoft account object:", loginResponse.account);
+    console.log("Microsoft account object:", loginResponse.account);
     
     // Acquire access token for your backend API
     let tokenResponse;
@@ -135,9 +136,10 @@ function Login({ showRedirectMessage = false }) {
         ...msalLoginRequest,
         account: loginResponse.account
       });
-    } catch {
+    } catch (err){
+      console.error("Error acquiring token:", err);
       // If silent acquisition fails, try popup
-      console.error("Silent token acquisition failed, acquiring token using popup");
+      console.info("Silent token acquisition failed, acquiring token using popup");
       tokenResponse = await msalInstance.acquireTokenPopup({
         ...msalLoginRequest,
         account: loginResponse.account
@@ -181,7 +183,7 @@ function Login({ showRedirectMessage = false }) {
     }
     
     // Log what we're sending to the backend
-    console.error("Sending to backend via AuthContext:", {
+    console.log("Sending to backend via AuthContext:", {
       access_token: accessToken,
       microsoft_id: microsoftId,
       email: email,

@@ -127,10 +127,9 @@ export const AuthProvider = ({ children }) => {
         method: 'POST',
         body: JSON.stringify({
           access_token: accessToken,
-          microsoft_id: userInfo.localAccountId || userInfo.homeAccountId?.split('.')[0] || userInfo.id,
-          email: userInfo.username || userInfo.mail || userInfo.userPrincipalName,
-          full_name: userInfo.name || userInfo.displayName
-          // Removed first_name and last_name to be consistent with our approach
+          microsoft_id: userInfo.localAccountId,
+          email: userInfo.username,
+          full_name: userInfo.name
         })
       });
 
