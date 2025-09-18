@@ -317,6 +317,12 @@
 /* Compact Clients grid when detail view is open */
 .clients-grid-compact { grid-template-columns: 1fr; }
 
+/* Project Sheets-specific columns */
+.project-sheets-grid { grid-template-columns: 2fr 1fr 1fr 1fr 1fr 150px; }
+
+/* Generated Sheets list columns */
+.sheets-list-grid { grid-template-columns: 2fr 1fr 1fr 220px; }
+
 /* Personnel-specific columns */
 .personnel-grid { grid-template-columns: 120px 1fr 120px; }
 

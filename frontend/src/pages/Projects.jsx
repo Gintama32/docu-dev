@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { api } from '../lib/api';
 import Modal from '../components/Modal';
@@ -10,8 +11,11 @@ import './Proposals.css';
 import '../components/UnifiedTable.css';
 
 function Projects() {
+  const navigate = useNavigate();
   const toast = useToast();
-  const { getProjects, refreshProjects } = useData();
+  const { getProjects, refreshProjects, getClients, getContacts } = useData();
+  const [clients, setClients] = useState([]);
+  const [contacts, setContacts] = useState([]);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState('');
@@ -22,6 +26,9 @@ function Projects() {
     date: '',
     contract_value: '',
     main_image_id: '',
+    location: '',
+    client_id: '',
+    contact_id: '',
   });
   
   // Note: Media management removed - now handled via MediaPicker only
@@ -30,7 +37,23 @@ function Projects() {
   const [showDetailView, setShowDetailView] = useState(false);
   const [detailViewMode, setDetailViewMode] = useState('view'); // 'view' or 'edit'
 
-  useEffect(() => { fetchList(); }, []);
+  useEffect(() => { 
+    fetchList(); 
+    loadDropdownData();
+  }, []);
+
+  const loadDropdownData = async () => {
+    try {
+      const [clientsData, contactsData] = await Promise.all([
+        getClients(),
+        getContacts()
+      ]);
+      setClients(clientsData || []);
+      setContacts(contactsData || []);
+    } catch (error) {
+      console.error('Failed to load dropdown data:', error);
+    }
+  };
 
   const fetchList = async () => {
     setLoading(true);
@@ -55,13 +78,31 @@ function Projects() {
 
   const resetForm = () => {
     setEditing(null);
-    setForm({ name: '', description: '', date: '', contract_value: '', main_image_id: '' });
+    setForm({ name: '', description: '', date: '', contract_value: '', main_image_id: '', location: '', client_id: '', contact_id: '' });
     // Media tab removed
     setShowDetailView(false);
     setDetailViewMode('view');
   };
 
   // Media management simplified - handled via MediaPicker only
+
+  const handleCreateProjectSheet = async (project) => {
+    try {
+      const { response, data } = await api.json(`/api/projects/${project.id}/sheet`, {
+        method: 'POST'
+      });
+
+      if (response.ok) {
+        toast.success('Project sheet created successfully');
+        // Navigate to the project sheet viewer
+        navigate(`/project-sheet/${data.id}`);
+      } else {
+        toast.error('Failed to create project sheet');
+      }
+    } catch (error) {
+      toast.error('Failed to create project sheet');
+    }
+  };
 
   const onSubmit = async (e) => {
     if (e) e.preventDefault();
@@ -71,6 +112,9 @@ function Projects() {
       date: form.date || null,
       contract_value: form.contract_value ? parseFloat(form.contract_value) : null,
       main_image_id: form.main_image_id ? Number(form.main_image_id) : null,
+      location: form.location || null,
+      client_id: form.client_id ? Number(form.client_id) : null,
+      contact_id: form.contact_id ? Number(form.contact_id) : null,
     };
     const url = editing ? `/api/projects/${editing.id}` : '/api/projects';
     const method = editing ? 'PUT' : 'POST';
@@ -99,6 +143,9 @@ function Projects() {
       date: item.date || '',
       contract_value: item.contract_value ?? '',
       main_image_id: item.main_image_id || '',
+      location: item.location || '',
+      client_id: item.client_id || '',
+      contact_id: item.contact_id || '',
     });
     
     // Media loading removed - handled by MediaPicker
@@ -117,6 +164,9 @@ function Projects() {
       date: item.date || '',
       contract_value: item.contract_value ?? '',
       main_image_id: item.main_image_id || '',
+      location: item.location || '',
+      client_id: item.client_id || '',
+      contact_id: item.contact_id || '',
     });
     
     // Media loading removed - handled by MediaPicker
@@ -280,6 +330,12 @@ function Projects() {
                         Edit Project
                       </button>
                       <button 
+                        className="button-secondary"
+                        onClick={() => handleCreateProjectSheet(editing)}
+                      >
+                        Create Sheet
+                      </button>
+                      <button 
                         className="button-danger"
                         onClick={() => setConfirmDeleteId(editing.id)}
                       >
@@ -359,6 +415,18 @@ function Projects() {
                             <label>Contract Value</label>
                             <p>{editing.contract_value ? `$${editing.contract_value.toLocaleString()}` : 'Not specified'}</p>
                           </div>
+                          <div className="info-item">
+                            <label>Location</label>
+                            <p>{editing.location || 'Not specified'}</p>
+                          </div>
+                          <div className="info-item">
+                            <label>Client</label>
+                            <p>{editing.client_id ? clients.find(c => c.id === editing.client_id)?.client_name : 'Not specified'}</p>
+                          </div>
+                          <div className="info-item">
+                            <label>Contact</label>
+                            <p>{editing.contact_id ? contacts.find(c => c.id === editing.contact_id)?.contact_name : 'Not specified'}</p>
+                          </div>
                           <div className="info-item full-width">
                             <label>Description</label>
                             <p>{editing.description || 'No description provided'}</p>
@@ -395,6 +463,24 @@ function Projects() {
                         <div className="form-group">
                           <label>Contract Value</label>
                           <input type="number" step="0.01" value={form.contract_value} onChange={e=>setForm(f=>({...f, contract_value: e.target.value}))} />
+                        </div>
+                        <div className="form-group">
+                          <label>Location</label>
+                          <input value={form.location} onChange={e=>setForm(f=>({...f, location: e.target.value}))} placeholder="Project location" />
+                        </div>
+                        <div className="form-group">
+                          <label>Client</label>
+                          <select value={form.client_id} onChange={e=>setForm(f=>({...f, client_id: e.target.value}))}>
+                            <option value="">Select client...</option>
+                            {clients.map(c => (<option key={c.id} value={c.id}>{c.client_name}</option>))}
+                          </select>
+                        </div>
+                        <div className="form-group">
+                          <label>Contact</label>
+                          <select value={form.contact_id} onChange={e=>setForm(f=>({...f, contact_id: e.target.value}))}>
+                            <option value="">Select contact...</option>
+                            {contacts.map(c => (<option key={c.id} value={c.id}>{c.contact_name}</option>))}
+                          </select>
                         </div>
                         <div className="form-group full-width">
                           <label>Main Image</label>

@@ -11,6 +11,7 @@ import ProfilePage from './pages/ProfilePage';
 import Proposals from './pages/Proposals';
 import Welcome from './pages/Welcome';
 import Clients from './pages/Clients';
+import ProjectSheetViewer from './pages/ProjectSheetViewer';
 import Login from './pages/Login';
 import './styles/variables.css';
 import './styles/utilities.css';
@@ -44,6 +45,7 @@ function AppContent() {
           <Route path="/clients" element={<Clients />} />
           <Route path="/experience" element={<Experience />} />
           <Route path="/project-sheet" element={<ProjectSheet />} />
+          <Route path="/project-sheet/:sheetId" element={<ProjectSheetViewer />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/personnel" element={<Personnel />} />
           <Route path="/personnel/profile/new" element={<ProfilePage />} />

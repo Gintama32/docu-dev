@@ -346,12 +346,43 @@ class Project(Base):
     date = Column(Date, nullable=True)
     contract_value = Column(Numeric(12, 2), nullable=True)
     main_image_id = Column(Integer, ForeignKey("media.id"), nullable=True)
+    
+    # Project sheet fields
+    location = Column(String(255), nullable=True)
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
+    contact_id = Column(Integer, ForeignKey("contacts.id"), nullable=True)
+    project_details = Column(JSON, nullable=True)  # Additional details for project sheets
 
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime, nullable=True)
+    
+    # Relationships
+    client = relationship("Client", back_populates="projects")
+    contact = relationship("Contact", back_populates="contact_projects")
 
     main_image = relationship("Media")
+    
+    # Project sheets relationship
+    project_sheets = relationship("ProjectSheet", back_populates="project", cascade="all, delete-orphan")
+
+
+class ProjectSheet(Base):
+    __tablename__ = "project_sheets"
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(255), nullable=False)
+    generated_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    generated_content = Column(Text, nullable=True)  # Store rendered HTML like resumes
+    template_data = Column(JSON, nullable=True)  # Store generation context
+    status = Column(String(50), nullable=False, default="generated")  # generated, archived, etc.
+    
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    project = relationship("Project", back_populates="project_sheets")
+    generated_by_user = relationship("User")
 
 
 class Resume(Base):
@@ -398,6 +429,7 @@ class Contact(Base):
     deleted_at = Column(DateTime, nullable=True)
     client = relationship("Client", back_populates="contacts", foreign_keys=[client_id])
     experiences = relationship("Experience", back_populates="contact")
+    contact_projects = relationship("Project", back_populates="contact")
 
 
 class Client(Base):
@@ -418,6 +450,7 @@ class Client(Base):
         "Contact", back_populates="client", foreign_keys=[Contact.client_id]
     )
     experiences = relationship("Experience", back_populates="client")
+    projects = relationship("Project", back_populates="client")
 
 
 class Experience(Base):

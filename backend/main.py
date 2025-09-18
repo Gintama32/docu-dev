@@ -25,6 +25,7 @@ from .routers import (
     experiences,
     media,
     projects,
+    project_sheets,
     proposals,
     resumes,
     templates,
@@ -195,6 +196,7 @@ app.include_router(resumes.router)
 app.include_router(ai.router)
 app.include_router(user_profiles.router)
 app.include_router(projects.router)
+app.include_router(project_sheets.router)
 app.include_router(media.router)
 
 

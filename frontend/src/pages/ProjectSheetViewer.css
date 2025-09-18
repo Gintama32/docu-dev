@@ -1,0 +1,95 @@
+.project-sheet-viewer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg-primary);
+}
+
+.sheet-viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.header-left h1 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: var(--font-semibold);
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-sm) !important;
+  padding: var(--space-xs) var(--space-sm) !important;
+}
+
+.header-actions {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.sheet-content-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-lg);
+  background: #ffffff; /* Remove background for consistency */
+}
+
+.sheet-content {
+  max-width: 8.5in;
+  margin: 0 auto;
+  background: white;
+  /* Remove box-shadow and border-radius for consistency with PDF */
+}
+
+/* Reset margins inside sheet content */
+.sheet-content * {
+  margin: 0;
+  padding: 0;
+}
+
+.sheet-content body {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .sheet-viewer-header {
+    flex-direction: column;
+    gap: var(--space-md);
+    align-items: stretch;
+  }
+  
+  .header-left {
+    justify-content: center;
+  }
+  
+  .header-actions {
+    justify-content: center;
+  }
+  
+  .sheet-content-container {
+    padding: var(--space-md);
+  }
+  
+  .sheet-content {
+    max-width: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}

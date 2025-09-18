@@ -563,6 +563,12 @@ class ProjectBase(BaseModel):
     description: Optional[str] = None
     contract_value: Optional[float] = None
     main_image_id: Optional[int] = None
+    
+    # Project sheet fields
+    location: Optional[str] = None
+    client_id: Optional[int] = None
+    contact_id: Optional[int] = None
+    project_details: Optional[Dict[str, Any]] = None
 
 
 class ProjectCreate(ProjectBase):
@@ -590,6 +596,12 @@ class ProjectUpdate(BaseModel):
     date: Any = None  # Accept any type, convert in validator
     contract_value: Optional[float] = None
     main_image_id: Optional[int] = None
+    
+    # Project sheet fields
+    location: Optional[str] = None
+    client_id: Optional[int] = None
+    contact_id: Optional[int] = None
+    project_details: Optional[Dict[str, Any]] = None
 
     @field_validator("date", mode="before")
     @classmethod
