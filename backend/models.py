@@ -342,7 +342,12 @@ class Project(Base):
     __tablename__ = "projects"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    description = Column(Text, nullable=True)
+    
+    # Multiple description fields for different purposes
+    project_sheet_description = Column(Text, nullable=True)  # Detailed description for project sheets
+    project_sheet_description_brief = Column(Text, nullable=True)  # Brief summary for project sheets
+    resume_description = Column(Text, nullable=True)  # Concise, achievement-focused for resumes
+    
     date = Column(Date, nullable=True)
     contract_value = Column(Numeric(12, 2), nullable=True)
     main_image_id = Column(Integer, ForeignKey("media.id"), nullable=True)

@@ -560,7 +560,12 @@ class ProfileEducation(ProfileEducationBase):
 # Project schemas
 class ProjectBase(BaseModel):
     name: str
-    description: Optional[str] = None
+    
+    # Multiple description fields for different purposes
+    project_sheet_description: Optional[str] = None  # Detailed for project sheets
+    project_sheet_description_brief: Optional[str] = None  # Brief summary
+    resume_description: Optional[str] = None  # Concise for resumes
+    
     contract_value: Optional[float] = None
     main_image_id: Optional[int] = None
     
@@ -592,7 +597,12 @@ class ProjectCreate(ProjectBase):
 
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
-    description: Optional[str] = None
+    
+    # Multiple description fields
+    project_sheet_description: Optional[str] = None
+    project_sheet_description_brief: Optional[str] = None
+    resume_description: Optional[str] = None
+    
     date: Any = None  # Accept any type, convert in validator
     contract_value: Optional[float] = None
     main_image_id: Optional[int] = None
