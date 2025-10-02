@@ -67,6 +67,7 @@ class MicrosoftSSORequest(BaseModel):
     microsoft_id: str
     email: EmailStr
     full_name: str
+    # These are optional with no special handling
     first_name: Optional[str] = None
     last_name: Optional[str] = None
 

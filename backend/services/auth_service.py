@@ -171,8 +171,9 @@ class AuthService:
                         "email": user_data.get("mail")
                         or user_data.get("userPrincipalName"),
                         "full_name": user_data.get("displayName"),
-                        "first_name": user_data.get("givenName"),
-                        "last_name": user_data.get("surname"),
+                        # We're not using these fields anymore to be consistent with frontend
+                        # "first_name": user_data.get("givenName"),
+                        # "last_name": user_data.get("surname"),
                         "job_title": user_data.get("jobTitle"),
                         "department": user_data.get("department"),
                     }
@@ -209,8 +210,9 @@ class AuthService:
                 user = models.User(
                     email=microsoft_data["email"],
                     full_name=microsoft_data["full_name"],
-                    first_name=microsoft_data.get("first_name"),
-                    last_name=microsoft_data.get("last_name"),
+                    # We're not using first_name and last_name from Microsoft SSO anymore
+                    # first_name=microsoft_data.get("first_name"),
+                    # last_name=microsoft_data.get("last_name"),
                     job_title=microsoft_data.get("job_title"),
                     department=microsoft_data.get("department"),
                     microsoft_id=microsoft_data["microsoft_id"],
@@ -221,8 +223,9 @@ class AuthService:
         else:
             # Update existing SSO user
             user.full_name = microsoft_data["full_name"]
-            user.first_name = microsoft_data.get("first_name")
-            user.last_name = microsoft_data.get("last_name")
+            # We're not using first_name and last_name from Microsoft SSO anymore
+            # user.first_name = microsoft_data.get("first_name")
+            # user.last_name = microsoft_data.get("last_name")
             user.job_title = microsoft_data.get("job_title")
             user.department = microsoft_data.get("department")
 
